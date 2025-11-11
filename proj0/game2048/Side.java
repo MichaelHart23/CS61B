@@ -21,7 +21,17 @@ public enum Side {
      *  standard coordinates, one can arrange to use exactly the same code
      *  to compute the result of tilting the board in any particular
      *  direction. */
-
+    /**
+     * 1：坐标原点为当前朝向的左下角
+     * 2：这些设计都是为了解决一个问题：怎么把朝东坐标系里的一个坐标，转化为朝北坐标系里对应的坐标？
+     * 把在该点当前坐标系里相对当前坐标系的变化放到原坐标系后会是什么？
+     * 行的变化会不会转化为列的变化？正的变化会不会变为负的变化？
+     * 把变化转化完成后，与当前坐标系的坐标原点在原坐标系的坐标加和，就得到了在原坐标系的坐标
+     * 其中col0和row0就表示的当前坐标系原点在原坐标系的坐标这一信息，
+     * 至于后面的dcol和drow，本质上是从对应旋转后的坐标系旋转回来的逆矩阵的新y hat的组合方式，而x hat的组合方式能通过y hat推出来
+     *
+     * 本质是坐标系的旋转和平移变换
+     * */
     NORTH(0, 0, 0, 1), EAST(0, 1, 1, 0), SOUTH(1, 1, 0, -1),
     WEST(1, 0, -1, 0);
 

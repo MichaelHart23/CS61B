@@ -5,7 +5,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE
+ *  @author TODO: Michael Hart
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -49,6 +49,9 @@ public class Model extends Observable {
      *  Used for testing. Should be deprecated and removed.
      *  */
     public Tile tile(int col, int row) {
+        if(row < 0 || row >= size() || col < 0 || col >= size()) { //对于越界的请求，返回null
+            return null;
+        }
         return board.tile(col, row);
     }
 
@@ -110,13 +113,55 @@ public class Model extends Observable {
         boolean changed;
         changed = false;
 
-        // TODO: Modify this.board (and perhaps this.score) to account
-        // for the tilt to the Side SIDE. If the board changed, set the
-        // changed local variable to true.
+        board.setViewingPerspective(side);
+        for(int col = 0; col < board.size(); col++) {
+            if(tilt_one(col)) {
+                changed = true;
+            }
+        }
+
+        board.setViewingPerspective(Side.NORTH); //恢复朝向
 
         checkGameOver();
         if (changed) {
             setChanged();
+        }
+        return changed;
+    }
+    /*
+    * 总体是一个快慢指针的二重循环，慢的是“top_position_can_be_moved”，其记录了tile最多可以上移到哪里
+    * 快的就是row和r，当找到一个非空tile时，row记录，然后去找另一个非空tile，找到用r记录，找不到r就变为-1
+    * 若row和r能merge，则merge，并更新一次r；若不能，则r不变
+    * 之后把merge与否的row指向的tile move到“top_position_can_be_moved”，更新row为r，继续循环
+    */
+    private boolean tilt_one(int col) {
+        boolean changed = false;
+        int top_position_can_be_moved = size() - 1; //记录可以被移动到的最上层的位置
+        for(int row = top_position_can_be_moved; row >= 0; ) { //从顶到底开始遍历
+            if(tile(col, row) != null) { //找到一个非空tile
+                int r = row - 1;
+                while(tile(col, r) == null && r >= 0) { //遍历找到下一个非空tile
+                    r--;
+                }
+                if(tile(col,r) != null && tile(col,r).value() == tile(col,row).value()) { //如果能merge，就merge
+                    score += 2 * tile(col,row).value(); //更新分数
+                    board.move(col,row,tile(col,r)); //merge
+                    //System.out.printf("merged row: %d and row: %d\n", r, row); //for debug
+                    r--; //若merge，则再次更新r
+                    changed = true; //标记状态已经改变
+                }
+                if(top_position_can_be_moved != row) { //位置不同
+                    //把merge或没merge的tile放到可以放的最上面位置，只有当位置不同才move
+                    board.move(col, top_position_can_be_moved, tile(col,row));
+                    changed = true; //标记状态已经改变
+                    //System.out.printf("moved form row: %d to row: %d\n", row, top_position_can_be_moved);//for debug
+                }
+                top_position_can_be_moved--; //更新“可以被移动到的最上层的位置”
+                row = r; //更新row
+            }
+            else {
+                row--;
+            }
         }
         return changed;
     }
@@ -137,7 +182,13 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
+        for(int i = 0; i < b.size(); i++) {
+            for(int j = 0; j < b.size(); j++) {
+                if(b.tile(i,j) == null){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -147,7 +198,14 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        for(int i = 0; i < b.size(); i++) {
+            for(int j = 0; j < b.size(); j++) {
+                Tile t = b.tile(i,j);
+                if(t != null && t.value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -158,7 +216,27 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
+        if(emptySpaceExists(b)) {
+            return true;
+        }
+        Tile tr = null, td = null, t = null;
+        for(int i = 0; i < b.size(); i++) {
+            for(int j = 0; j < b.size(); j++) {
+                t = b.tile(i, j);
+                if(i != b.size() - 1) {
+                    td = b.tile(i + 1, j);
+                    if(t.value() == td.value()) {
+                        return true;
+                    }
+                }
+                if(j != b.size() - 1) {
+                    tr = b.tile(i, j + 1);
+                    if(t.value() == tr.value()) {
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
