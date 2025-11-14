@@ -25,7 +25,7 @@ public class TimeSLList {
         AList<Integer> Ns = new AList<>();
         AList<Double> times = new AList<>();
         AList<Integer> opCounts = new AList<>();
-        int opCount = 1000;
+        int opCount = 10000;
         int n = 1000;
         for(int i = 0; i < 8; i++) {
             if(i > 0) {
@@ -39,7 +39,7 @@ public class TimeSLList {
             }
             Stopwatch sw = new Stopwatch();
             for(int j = 0; j < opCount; j++) {
-                testSL.addLast(j);
+                testSL.getLast();
             }
             times.addLast(sw.elapsedTime());
         }
