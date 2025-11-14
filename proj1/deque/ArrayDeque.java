@@ -1,7 +1,8 @@
 package deque;
 import java.lang.Math;
+import java.util.Iterator;
 
-public class ArrayDeque<T> {
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     int capacity;
     int size;
     int startIndex; //双端队列头在哪里
@@ -20,6 +21,47 @@ public class ArrayDeque<T> {
         resizeFactor = 1.5f;
     }
 
+    public ArrayDeque(ArrayDeque<T> another) {
+        capacity = another.capacity;
+        size = another.size;
+        startIndex = another.startIndex;
+        nextFirst = another.nextFirst;
+        nextLast = another.nextLast;
+        resizeFactor = another.resizeFactor;
+        arr = (T[])new Object[capacity];
+        for(int i = 0; i < size; i++) {
+            arr[(startIndex + i) % capacity] = another.arr[(startIndex + i) % capacity];
+        }
+    }
+    @Override
+    public Iterator<T> iterator() {
+        return new ArrayDequeIterator();
+    }
+
+    private class ArrayDequeIterator implements Iterator<T> {
+        private int index;
+        private int num;
+        ArrayDequeIterator() {
+            index = startIndex;
+            num = 0;
+        }
+        @Override
+        public boolean hasNext() {
+            return num == size;
+        }
+
+        @Override
+        public T next() {
+            num++;
+            T res = arr[index++];
+            if(index == capacity) {
+                index = 0;
+            }
+            return res;
+        }
+    }
+
+    @Override
     public void addFirst(T x) {
         if(size == capacity) {
             resize((int)(capacity * resizeFactor));
@@ -29,7 +71,7 @@ public class ArrayDeque<T> {
         nextFirst = Math.floorMod((nextFirst - 1), capacity);
         size++;
     }
-
+    @Override
     public void addLast(T x) {
         if(size == capacity) {
             resize((int)(capacity * resizeFactor));
@@ -57,7 +99,7 @@ public class ArrayDeque<T> {
         nextFirst = Math.floorMod(startIndex - 1, capacity);
         nextLast = Math.floorMod(startIndex + size, capacity);
     }
-
+    @Override
     public void printDeque() {
         String res = new String();
         for(int i = 0, j = 0; i < size; i++) {
@@ -68,15 +110,11 @@ public class ArrayDeque<T> {
         }
         System.out.println(res);
     }
-
-    public boolean isEmpty() {
-        return size == 0;
-    }
-
+    @Override
     public int size() {
         return size;
     }
-
+    @Override
     public T removeFirst() {
         if(size == 0) {
             return null;
@@ -91,7 +129,7 @@ public class ArrayDeque<T> {
         }
         return res;
     }
-
+    @Override
     public T removeLast() {
         if(size == 0) {
             return null;
@@ -105,7 +143,7 @@ public class ArrayDeque<T> {
         }
         return res;
     }
-
+    @Override
     public T get(int index) {
         if(size == 0 || index < 0 || index >= size) {
             return null;

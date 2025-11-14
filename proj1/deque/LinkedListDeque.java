@@ -1,6 +1,8 @@
 package deque;
 
-public class LinkedListDeque<T> {
+import java.util.Iterator;
+
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private class Node {
         T value;
         Node prev;
@@ -17,6 +19,30 @@ public class LinkedListDeque<T> {
         }
     }
 
+    @Override
+    public Iterator<T> iterator() {
+        return new LinkedLiskDequeItreator();
+    }
+
+    private class LinkedLiskDequeItreator implements Iterator<T>{
+        private Node n;
+        LinkedLiskDequeItreator() {
+            n = sentinel.next;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return n == sentinel;
+        }
+
+        @Override
+        public T next() {
+            T item = n.value;
+            n = n.next;
+            return item;
+        }
+    }
+
     private Node sentinel;
     int size;
     public LinkedListDeque() {
@@ -25,14 +51,14 @@ public class LinkedListDeque<T> {
         sentinel.prev = sentinel;
         sentinel.next = sentinel;
     }
-
+    @Override
     public void addFirst(T x) {
         Node node = new Node(x, sentinel, sentinel.next);
         sentinel.next.prev = node;
         sentinel.next = node;
         size++;
     }
-
+    @Override
     public void addLast(T x) {
         Node node = new Node(x, sentinel.prev, sentinel);
         sentinel.prev.next = node;
@@ -40,14 +66,11 @@ public class LinkedListDeque<T> {
         size++;
     }
 
-    public boolean isEmpty() {
-        return size == 0;
-    }
-
+    @Override
     public int size() {
         return size;
     }
-
+    @Override
     public void printDeque() {
         String res = new String();
         Node n;
@@ -57,7 +80,7 @@ public class LinkedListDeque<T> {
         }
         System.out.println(res);
     }
-
+    @Override
     public T removeFirst() {
         if(size == 0) {
             return null;
@@ -68,7 +91,7 @@ public class LinkedListDeque<T> {
         size--;
         return n.value;
     }
-
+    @Override
     public T removeLast() {
         if (size == 0) {
             return null;
@@ -79,7 +102,7 @@ public class LinkedListDeque<T> {
         size--;
         return n.value;
     }
-
+    @Override
     public T get(int index) {
         if(size == 0 || index >= size || index < 0) {
             return null;
