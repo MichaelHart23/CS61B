@@ -68,7 +68,7 @@ public class CapersRepository {
     public static void makeDog(String name, String breed, int age) {
         Dog dog = new Dog(name, breed, age);
         dog.saveDog();
-        dog.toString();
+        System.out.println(dog.toString());
     }
 
     /**
@@ -78,7 +78,9 @@ public class CapersRepository {
      * @param name String name of the Dog whose birthday we're celebrating.
      */
     public static void celebrateBirthday(String name) {
+        System.out.println("before fromFile");
         Dog dog = Dog.fromFile(name);
+        System.out.println("after fromFile");
         dog.haveBirthday();
     }
 }

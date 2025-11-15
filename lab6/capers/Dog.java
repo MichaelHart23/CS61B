@@ -41,7 +41,7 @@ public class Dog implements Serializable {
      */
     public static Dog fromFile(String name) {
         File dog = join(DOG_FOLDER, name);
-        return Utils.readObject(dog, Dog.class);
+        return readObject(dog, Dog.class);
     }
 
     /**
@@ -65,7 +65,7 @@ public class Dog implements Serializable {
                 System.err.println("Error creating file: " + e.getMessage());
             }
         }
-        writeObject(f, Dog.class);
+        writeObject(f, this);
     }
 
     @Override
