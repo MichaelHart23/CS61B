@@ -41,7 +41,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         public T next() {
             num++;
             T res = arr[index++];
-            if(index == capacity) {
+            if (index == capacity) {
                 index = 0;
             }
             return res;
@@ -51,7 +51,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     @Override
     public void addFirst(T x) {
         if (size == capacity) {
-            resize((int)(capacity * resizeFactor));
+            resize((int) (capacity * resizeFactor));
         }
         startIndex = nextFirst;
         arr[nextFirst] = x;
@@ -61,7 +61,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     @Override
     public void addLast(T x) {
         if (size == capacity) {
-            resize((int)(capacity * resizeFactor));
+            resize((int) (capacity * resizeFactor));
         }
         arr[nextLast] = x;
         nextLast = Math.floorMod((nextLast + 1), capacity);
@@ -69,14 +69,14 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     private void resize(int newCapacity) {
-        T[] newArr = (T[])new Object[newCapacity];
+        T[] newArr = (T[]) new Object[newCapacity];
         int newStartIndex = newCapacity / 2 - size / 2;
-        for(int i = newStartIndex, j = startIndex, k = 0; k < size; k++) {
+        for (int i = newStartIndex, j = startIndex, k = 0; k < size; k++) {
             newArr[i] = arr[j];
-            if(++i == newCapacity) {
+            if (++i == newCapacity) {
                 i = 0;
             }
-            if(++j == capacity) {
+            if (++j == capacity) {
                 j = 0;
             }
         }
@@ -91,7 +91,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         String res = new String();
         for (int i = 0, j = 0; i < size; i++) {
             res += String.valueOf(arr[startIndex + j]);
-            if(++j == capacity) {
+            if (++j == capacity) {
                 j = 0;
             }
         }
@@ -102,12 +102,13 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         return size;
     }
 
-    public int capacity() {
+    int capacity() {
         return capacity;
     }
+
     @Override
     public T removeFirst() {
-        if(size == 0) {
+        if (size == 0) {
             return null;
         }
         size--;
@@ -115,8 +116,8 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         nextFirst = Math.floorMod((nextFirst + 1), capacity);
         T res = arr[nextFirst];
         arr[nextFirst] = null;
-        if(size > 16 && size < capacity / 4) {
-            resize(capacity/4);
+        if (size > 16 && size < capacity / 4) {
+            resize(capacity / 4);
         }
         return res;
     }
@@ -141,10 +142,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         }
         int pos = Math.floorMod(startIndex + index, capacity);
         return arr[pos];
-    }
-
-    public T getRecursive(int index) {
-        throw new UnsupportedOperationException("No need to implement getRecursive for proj 1b");
     }
 
     public boolean equals(Object o) {

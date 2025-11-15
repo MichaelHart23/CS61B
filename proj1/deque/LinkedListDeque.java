@@ -110,7 +110,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
         Node n;
-        for(n = sentinel.next; n != sentinel && index != 0; n = n.next, index--) {}
+        for (n = sentinel.next; n != sentinel && index != 0; n = n.next) {
+            index--;
+        }
         return n.value;
     }
 
