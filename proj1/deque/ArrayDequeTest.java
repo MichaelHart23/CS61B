@@ -27,7 +27,7 @@ public class ArrayDequeTest {
         ArrayDeque<Integer> ad = new ArrayDeque<>();
         ArrayDeque<Integer> forTest = new ArrayDeque<>();
         for(int i = 0; i < 10000; i++) {
-            if(ad.size == ad.capacity) { //resize
+            if(ad.size() == ad.capacity()) { //resize
                 ad.addLast(i); //resize
                 assertEquals((long)ad.removeLast(), i);
                 assertTrue(ad.equals(forTest));
@@ -37,7 +37,7 @@ public class ArrayDequeTest {
             }
         }
         for(int i = 0; i < 10000; i++) {
-            if(ad.size - 1 == ad.capacity / 4) {
+            if(ad.size() - 1 == ad.capacity() / 4) {
                 int k = ad.removeLast(); //resize
                 ad.addLast(k);
                 assertTrue(ad.equals(forTest));
