@@ -102,9 +102,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         return size;
     }
 
-    int capacity() {
-        return capacity;
-    }
 
     @Override
     public T removeFirst() {

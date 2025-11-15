@@ -116,8 +116,8 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return n.value;
     }
 
-    private T getRecursive(int index) {
-        if(size == 0 || index >= size || index < 0) {
+    public T getRecursive(int index) {
+        if (size == 0 || index >= size || index < 0) {
             return null;
         }
         Node n = sentinel.next;
