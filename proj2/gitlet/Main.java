@@ -1,7 +1,7 @@
 package gitlet;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @author Michael Hart
  */
 public class Main {
 
@@ -13,7 +13,7 @@ public class Main {
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                // TODO: handle the `init` command
+                Repository.init();
                 break;
             case "add":
                 // TODO: handle the `add [filename]` command
