@@ -135,13 +135,13 @@ public class Repository {
         Commit c = Commit.getHeadCommit();
         File f = Utils.join(CWD, filename);
         Blob b = new Blob(f);
-        if(!s.hasFile(filename) && c.hasBlob(filename, b.getID())) {
+        if(!s.hasAddedFile(filename) && c.hasBlob(filename, b.getID())) {
             Utils.exitWithError("No reason to remove the file.");
         }
         if(f.exists()) {
             f.delete(); //若该文件仍在工作区，删除该文件
         }
-        if(s.hasFile(filename)) {
+        if(s.hasAddedFile(filename)) {
             s.addition.remove(filename);
         }
         if(c.hasBlob(filename, b.getID())) {

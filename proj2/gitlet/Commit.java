@@ -37,7 +37,7 @@ public class Commit implements Serializable {
 
     public Commit(String ms, Commit pa, Stage s) { //通过message和父commit和暂存区构建一个commit
         timeStamp = new Date();
-        map = new HashMap<>(pa.map);
+        map = (pa.map == null) ? new HashMap<>() : new HashMap<>(pa.map);
         for(Map.Entry<String, String> entry : s.addition.entrySet()) {
             map.put(entry.getKey(), entry.getValue());
         }
@@ -46,7 +46,7 @@ public class Commit implements Serializable {
         }
         parent = pa.id;
         message = ms;
-        id = Utils.sha1(message, map.toString(), parent, secondParent, timeStamp.toString());
+        id = Utils.sha1(message, map.toString(), parent, timeStamp.toString());
     }
 
     public static Commit initialCommit() { //gitlet init时创建的第一个commit
@@ -71,11 +71,15 @@ public class Commit implements Serializable {
     }
 
     public boolean hasBlob(String filename, String blobID) {
+        if(map == null) {
+            return false;
+        }
         return map.containsKey(filename) && map.get(filename).equals(blobID);
     }
 
     public void saveCommit() {
-        Utils.writeObject(Repository.OBJECTS, this);
+        File f = Utils.join(Repository.OBJECTS, id);
+        Utils.writeObject(f, this);
     }
 
     public String getID() {
