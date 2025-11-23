@@ -10,7 +10,7 @@ public class Blob implements Serializable {
     public String getID() {
         return id;
     }
-    
+
     public void saveBolb() {
         File f = Utils.join(Repository.OBJECTS, id);
         try {
@@ -25,5 +25,7 @@ public class Blob implements Serializable {
         content = Utils.readContentsAsString(file);
         id = Utils.sha1(file.getName(), content); //文件名也作为判别不同文件的依据
     }
-    
+    public Blob(String filename) {
+
+    }
 }

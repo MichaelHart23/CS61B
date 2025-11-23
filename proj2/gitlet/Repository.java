@@ -86,6 +86,10 @@ public class Repository {
         makeMasterBranch(initialCommit.getID());
     }
 
+    public static boolean initialized() {
+        return GITLET_DIR.exists() && OBJECTS.exists() && BRACNCHES.exists() && HEAD.exists() && STAGE.exists();
+    }
+
     public static void add(String filename) { //用于完成gitlet add
         File f = join(Repository.CWD, filename);
         if(!f.isFile()) {
@@ -113,12 +117,36 @@ public class Repository {
         b.saveBolb();
         s.saveStage();
     }
-
-    public void newBranch(String branchName) { //to be finshed
-        File f = join(BRACNCHES, branchName);
-        if(f.exists()) {
-            System.out.println("A branch with that name already exists.");
-            System.exit(-1);
+    
+    public static void commit(String commitMessage) {
+        Stage s = Stage.getStage();
+        if(s.addition.isEmpty() && s.removal.isEmpty()) {
+            Utils.exitWithError("No changes added to the commit.");
         }
+        Commit pa = Commit.getHeadCommit();
+        Commit c = new Commit(commitMessage, pa, s);
+        c.saveCommit();
+        Commit.updateHeadCommit(c.getID());  //更新commit head
+        s.clearStage();   //清空暂存区
+    }
+
+    public static void rm(String filename) {
+        Stage s = Stage.getStage();
+        Commit c = Commit.getHeadCommit();
+        File f = Utils.join(CWD, filename);
+        Blob b = new Blob(f);
+        if(!s.hasFile(filename) && c.hasBlob(filename, b.getID())) {
+            Utils.exitWithError("No reason to remove the file.");
+        }
+        if(f.exists()) {
+            f.delete(); //若该文件仍在工作区，删除该文件
+        }
+        if(s.hasFile(filename)) {
+            s.addition.remove(filename);
+        }
+        if(c.hasBlob(filename, b.getID())) {
+            s.removal.put(filename, b.getID());
+        }
+
     }
 }

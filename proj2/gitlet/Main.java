@@ -11,36 +11,58 @@ public class Main {
      */
     public static void main(String[] args) {
         if (args.length == 0) {
-            System.out.println("Must have at least one argument");
+            System.out.println("Please enter a command.");
             System.exit(-1);
         }
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                validateNumArgs("init", args, 2);
+                validateNumArgs(args, 1);
                 Repository.init();
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
-                validateNumArgs("add", args, 3);
-                Repository.add(args[2]);
+                validateNumArgs(args, 2);
+                validateDir();
+                Repository.add(args[1]);
                 break;
-            // TODO: FILL THE REST IN
+            case "commit":
+                if(args.length == 1) {
+                    System.out.println("Please enter a commit message.");
+                    System.exit(0);
+                }
+                validateNumArgs(args, 2);
+                validateDir();
+                Repository.commit(args[1]);
+                break;
+            case "rm":
+                validateNumArgs(args, 2);
+                validateDir();
+                Repository.rm(args[1]);
+                break;
+            default:
+                System.out.println("No command with that name exists.");
+                break;
         }
     }
 
      /**
      * Checks the number of arguments versus the expected number,
-     * throws a RuntimeException if they do not match.
-     *
-     * @param cmd Name of command you are validating
+     * Exit if they do not match.
+     * 
      * @param args Argument array from command line
      * @param n Number of expected arguments
      */
-     public static void validateNumArgs(String cmd, String[] args, int n) {
+     public static void validateNumArgs(String[] args, int n) {
         if (args.length != n) {
-            throw new RuntimeException(
-                String.format("Invalid number of arguments for: %s.", cmd));
+            System.out.println("Incorrect operands.");
+            System.exit(-1);
+        }
+    }
+
+    public static void validateDir() {
+        if(!Repository.initialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            System.exit(-1);
         }
     }
 }
