@@ -14,12 +14,13 @@ import java.util.Map;
  */
 public class Commit implements Serializable {
     /**
-     * TODO: add instance variables here.
-     *
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided one example for `message`.
      */
+
+    //当更改Commit的结构时可能会改变
+    public static final String initialCommitID = "a497e1842e2865d93b97cf6e38802025bd776121";
 
     /** The message of this Commit. */
     private String message;
@@ -27,7 +28,7 @@ public class Commit implements Serializable {
     HashMap<String, String> map;
     /*父commit的id */
     private String parent;
-    private String secondParent;
+    String secondParent;
     /*时间戳 */
     private Date timeStamp;
     /*自身的id */
@@ -55,6 +56,8 @@ public class Commit implements Serializable {
         Commit commit = new Commit();
         commit.message = "initial commit";
         commit.timeStamp = new Date(0);
+        commit.parent = null;
+        commit.secondParent = null;
         commit.id = Utils.sha1(commit.message, commit.timeStamp.toString());
         return commit;
     }
@@ -67,9 +70,30 @@ public class Commit implements Serializable {
         return commit;
     }
 
+    public static Commit getHeadCommitOfBranch(String branchName) {
+        File f = Utils.join(Repository.BRACNCHES, branchName);
+        String headID = Utils.readContentsAsString(f);
+        File F = Utils.join(Repository.OBJECTS, headID);   //打开该commit对应的文件
+        Commit commit = Utils.readObject(F, Commit.class); //读取head commit
+        return commit;
+    }
+
+    public static Commit getCommit(String id) {
+        File f = Utils.join(Repository.OBJECTS, id);
+        if(f == null) {
+            return null;
+        }
+        Commit commit = Utils.readObject(f, Commit.class); //读取head commit
+        return commit;
+    }
+
     public static void updateHeadCommit(String id) {//更新当前分支的head commit
         File f = Branch.getCurrentBranchFile(); //获取当前分支文件
         Utils.writeContents(f, id); //写入当前commit head的id
+    }
+
+    public static void printCommit(Commit c) {
+        c.print();
     }
 
     public boolean hasBlob(String filename, String blobID) {
@@ -86,11 +110,34 @@ public class Commit implements Serializable {
         Utils.writeObject(f, this);
     }
 
+    public void print() {
+        System.out.println("===");
+        System.out.println("commit " + id);
+        if(secondParent != null) {
+            System.out.println("Merge " + parent.substring(0, 7) + " " + secondParent.substring(0, 7));
+        }
+        System.out.println("Date: " + timeStamp.toString());
+        System.out.println(message);
+        System.out.print("\n");
+    }
+
     public String getID() {
         return id;
     }
 
     public boolean equals(Commit other) {
         return message.equals(other.message) && map.equals(other.map) && parent.equals(other.parent);
+    }
+
+    public boolean isInitial() {
+        return parent == null;
+    }
+
+    public String getParentID() {
+        return parent;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }

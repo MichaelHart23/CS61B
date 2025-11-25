@@ -2,11 +2,15 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static gitlet.Utils.join;
 
-// TODO: any imports you need here
 
 /** Represents a gitlet repository.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -149,5 +153,58 @@ public class Repository {
             s.removal.put(filename, b.getID());
         }
         s.saveStage();
+    }
+
+    /**
+     * @param c the head of a list of commits
+     * @param visited those commits traversed
+     * @param meet commit需满足的条件
+     * @param action the action applied to the commit
+     * 遍历以c为首的commit链表，当commit满足某个条件时，对每个commit执行相应操作
+     */
+    private static void traverseBranch(Commit c, HashSet<String> visited,
+                                       Predicate<Commit> meet, Consumer<Commit> action) {
+        while(!visited.contains(c.getID())) {
+            if(meet.test(c)) {
+                action.accept(c);
+            }
+            visited.add(c.getID());
+            if(c.getID().equals(Commit.initialCommitID)) { //当前commit是initial commit
+                break;
+            }
+            c = Commit.getCommit(c.getParentID());
+        }
+    }
+
+    public static void log() {
+        Commit c = Commit.getHeadCommit();
+        traverseBranch(c, new HashSet<>(), (commit)->{ return true; }, Commit::printCommit);
+    }
+
+    public static void global_log() {
+        HashSet<String> visited = new HashSet<>();
+        for(File f : Repository.BRACNCHES.listFiles()) {
+            String id = Utils.readContentsAsString(f);
+            Commit c = Commit.getCommit(id);
+            traverseBranch(c, visited, (commit)->{ return true; }, Commit::printCommit);
+        }
+    }
+
+    public static void find(String commitMessage) {
+        HashSet<String> visited = new HashSet<>();
+        for(File f : Repository.BRACNCHES.listFiles()) {
+            String id = Utils.readContentsAsString(f);
+            Commit c = Commit.getCommit(id);
+            traverseBranch(c, visited, (commit)->{return commit.getMessage().equals(commitMessage);},
+                    (commit)->System.out.println(commit.getID()));
+        }
+    }
+
+    public static void status() {
+        Branch.branchesStatus();
+    }
+
+    public static void branch(String branchName) {
+        Branch.createBranch(branchName);
     }
 }

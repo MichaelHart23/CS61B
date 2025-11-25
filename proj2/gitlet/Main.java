@@ -39,6 +39,31 @@ public class Main {
                 validateDir();
                 Repository.rm(args[1]);
                 break;
+            case "log":
+                validateNumArgs(args, 1);
+                validateDir();
+                Repository.log();
+                break;
+            case "global-log":
+                validateNumArgs(args, 1);
+                validateDir();
+                Repository.global_log();
+                break;
+            case "find":
+                validateNumArgs(args, 2);
+                validateDir();
+                Repository.find(args[1]);
+                break;
+            case "status":
+                validateNumArgs(args, 1);
+                validateDir();
+                Repository.status();
+                break;
+            case "branch":
+                validateNumArgs(args, 2);
+                validateDir();
+                Repository.branch(args[1]);
+                break;
             default:
                 System.out.println("No command with that name exists.");
                 break;

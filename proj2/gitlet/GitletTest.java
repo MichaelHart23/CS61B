@@ -62,6 +62,7 @@ public class GitletTest {
                 e.printStackTrace();
             }
         }
+        gitlet("init");
     }
 
     @Test
@@ -80,8 +81,6 @@ public class GitletTest {
 
     @Test
     public void test1() {
-        gitlet("init");
-
         writeFile("f1.txt", "hello1");
         gitlet("add", "f1.txt");
         Blob b1 = new Blob("f1.txt");
@@ -128,5 +127,130 @@ public class GitletTest {
         Commit c = Commit.getHeadCommit();
         assertFalse(c.map.containsKey("f2.txt"));
         System.out.println("rm finished");
+    }
+
+    @Test
+    public void testBranch() {
+        writeFile("f1.txt", "hello1");
+        gitlet("add", "f1.txt");
+        writeFile("f2.txt", "hello2");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit1");
+        gitlet("branch", "branch2");
+
+        append2File("f1.txt", "hello1");
+        append2File("f2.txt", "hello2");
+        gitlet("add", "f1.txt");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit2");
+
+        String head = Utils.readContentsAsString(Repository.HEAD);
+        assertTrue(head.equals("branch2"));
+        Branch.printAllBranches();
+    }
+
+    @Test
+    public void testLog() {
+        writeFile("f1.txt", "hello1");
+        gitlet("add", "f1.txt");
+        writeFile("f2.txt", "hello2");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit1");
+        //gitlet("branch", "branch2");
+
+        append2File("f1.txt", "hello1");
+        append2File("f2.txt", "hello2");
+        gitlet("add", "f1.txt");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit2");
+
+        gitlet("log");
+    }
+
+    @Test
+    public void testGlobalLog() {
+        writeFile("f1.txt", "hello1");
+        gitlet("add", "f1.txt");
+        writeFile("f2.txt", "hello2");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit1");
+        gitlet("branch", "branch2");
+
+        append2File("f1.txt", "hello1");
+        append2File("f2.txt", "hello2");
+        gitlet("add", "f1.txt");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit2");
+
+        gitlet("global-log");
+    }
+
+    @Test
+    public void testFind() {
+        writeFile("f1.txt", "hello1");
+        gitlet("add", "f1.txt");
+        writeFile("f2.txt", "hello2");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit1");
+        gitlet("branch", "branch2");
+
+        append2File("f1.txt", "hello1");
+        append2File("f2.txt", "hello2");
+        gitlet("add", "f1.txt");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit2");
+
+        writeFile("f1.txt", "hello1");
+        gitlet("add", "f1.txt");
+        writeFile("f2.txt", "hello2");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit1");
+        gitlet("branch", "branch3");
+
+        append2File("f1.txt", "hello1");
+        append2File("f2.txt", "hello2");
+        gitlet("add", "f1.txt");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit3");
+
+        gitlet("find", "initial commit");
+        gitlet("find", "commit1");
+    }
+
+    @Test
+    public void testStatus() {
+        writeFile("f1.txt", "hello1");
+        gitlet("add", "f1.txt");
+        writeFile("f2.txt", "hello2");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit1");
+        gitlet("branch", "branch2");
+
+        append2File("f1.txt", "hello1");
+        append2File("f2.txt", "hello2");
+        gitlet("add", "f1.txt");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit2");
+
+        writeFile("f1.txt", "hello1");
+        gitlet("add", "f1.txt");
+        writeFile("f2.txt", "hello2");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit1");
+        gitlet("branch", "branch3");
+
+        append2File("f1.txt", "hello1");
+        append2File("f2.txt", "hello2");
+        gitlet("add", "f1.txt");
+        gitlet("add", "f2.txt");
+        gitlet("commit", "commit3");
+
+        append2File("f1.txt", "hello1");
+        append2File("f2.txt", "hello2");
+        gitlet("add", "f1.txt");
+        gitlet("add", "f2.txt");
+
+
+        gitlet("status");
     }
 }
