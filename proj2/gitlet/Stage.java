@@ -20,16 +20,13 @@ public class Stage implements Serializable {
         return s;
     }
 
-    public void clearStage() {
+    public void clearStage() { //清空暂存区并保存
         addition.clear();
         removal.clear();
         saveStage();
     }
 
     public boolean hasAddedBlob(String filename, String blobID) {
-         if(addition == null) {
-            return false;
-        }
         return addition.containsKey(filename) && addition.get(filename).equals(blobID);
     }
 
@@ -40,7 +37,7 @@ public class Stage implements Serializable {
         return addition.containsKey(filename);
     }
 
-    public void addItem(String filename, String id) {
+    public void addItem(String filename, String id) { //有一个blob要加进暂存区
         addition.put(filename, id);
         if(removal.containsKey(filename)) {
             removal.remove(filename);

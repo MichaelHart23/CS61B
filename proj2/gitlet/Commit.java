@@ -24,7 +24,7 @@ public class Commit implements Serializable {
     /** The message of this Commit. */
     private String message;
     /*bolbs的文件名与哈希值的键值对 */
-    private HashMap<String, String> map;
+    HashMap<String, String> map;
     /*父commit的id */
     private String parent;
     private String secondParent;
@@ -33,15 +33,17 @@ public class Commit implements Serializable {
     /*自身的id */
     private String id;
 
-    public Commit() {}
+    public Commit() {
+        map = new HashMap<>();
+    }
 
-    public Commit(String ms, Commit pa, Stage s) { //通过message和父commit和暂存区构建一个commit
-        timeStamp = new Date();
-        map = (pa.map == null) ? new HashMap<>() : new HashMap<>(pa.map);
+    public Commit(String ms, Commit pa, Stage s, Date date) { //通过message和父commit和暂存区构建一个commit
+        timeStamp = date;
+        map = new HashMap<>(pa.map);
         for(Map.Entry<String, String> entry : s.addition.entrySet()) {
             map.put(entry.getKey(), entry.getValue());
         }
-        for(Map.Entry<String, String> entry : s.addition.entrySet()) {
+        for(Map.Entry<String, String> entry : s.removal.entrySet()) {
             map.remove(entry.getKey());
         }
         parent = pa.id;
@@ -71,11 +73,13 @@ public class Commit implements Serializable {
     }
 
     public boolean hasBlob(String filename, String blobID) {
-        if(map == null) {
-            return false;
-        }
         return map.containsKey(filename) && map.get(filename).equals(blobID);
     }
+
+    public boolean hasFile(String filename) {
+        return map.containsKey(filename);
+    }
+
 
     public void saveCommit() {
         File f = Utils.join(Repository.OBJECTS, id);
@@ -84,5 +88,9 @@ public class Commit implements Serializable {
 
     public String getID() {
         return id;
+    }
+
+    public boolean equals(Commit other) {
+        return message.equals(other.message) && map.equals(other.map) && parent.equals(other.parent);
     }
 }

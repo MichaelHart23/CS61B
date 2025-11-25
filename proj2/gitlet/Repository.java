@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 import static gitlet.Utils.join;
 
@@ -124,7 +125,7 @@ public class Repository {
             Utils.exitWithError("No changes added to the commit.");
         }
         Commit pa = Commit.getHeadCommit();
-        Commit c = new Commit(commitMessage, pa, s);
+        Commit c = new Commit(commitMessage, pa, s, new Date());
         c.saveCommit();
         Commit.updateHeadCommit(c.getID());  //更新commit head
         s.clearStage();   //清空暂存区
@@ -135,7 +136,7 @@ public class Repository {
         Commit c = Commit.getHeadCommit();
         File f = Utils.join(CWD, filename);
         Blob b = new Blob(f);
-        if(!s.hasAddedFile(filename) && c.hasBlob(filename, b.getID())) {
+        if(!s.hasAddedFile(filename) && !c.hasFile(filename)) {
             Utils.exitWithError("No reason to remove the file.");
         }
         if(f.exists()) {
@@ -144,9 +145,9 @@ public class Repository {
         if(s.hasAddedFile(filename)) {
             s.addition.remove(filename);
         }
-        if(c.hasBlob(filename, b.getID())) {
+        if(c.hasFile(filename)) {
             s.removal.put(filename, b.getID());
         }
-
+        s.saveStage();
     }
 }
