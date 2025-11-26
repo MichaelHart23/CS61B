@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.Date;
 
 public class GitletTest {
-    private final int filenum = 4;
+    private final int filenum = 8;
     private void gitlet(String... args) {
         Main.main(args);
     }
@@ -219,37 +219,30 @@ public class GitletTest {
 
     @Test
     public void testStatus() {
-        writeFile("f1.txt", "hello1");
-        gitlet("add", "f1.txt");
-        writeFile("f2.txt", "hello2");
-        gitlet("add", "f2.txt");
+        for(int i = 1; i <= filenum; i++) {
+            writeFile(String.format("f%d.txt", i), String.format("hello%d", i));
+            gitlet("add", String.format("f%d.txt", i));
+        }
         gitlet("commit", "commit1");
-        gitlet("branch", "branch2");
 
-        append2File("f1.txt", "hello1");
-        append2File("f2.txt", "hello2");
-        gitlet("add", "f1.txt");
-        gitlet("add", "f2.txt");
-        gitlet("commit", "commit2");
 
-        writeFile("f1.txt", "hello1");
-        gitlet("add", "f1.txt");
-        writeFile("f2.txt", "hello2");
-        gitlet("add", "f2.txt");
-        gitlet("commit", "commit1");
-        gitlet("branch", "branch3");
-
-        append2File("f1.txt", "hello1");
-        append2File("f2.txt", "hello2");
-        gitlet("add", "f1.txt");
-        gitlet("add", "f2.txt");
-        gitlet("commit", "commit3");
-
+        //Staged file
         append2File("f1.txt", "hello1");
         append2File("f2.txt", "hello2");
         gitlet("add", "f1.txt");
         gitlet("add", "f2.txt");
 
+        //removed file
+        gitlet("rm", "f3.txt");
+
+        //Modifications Not Staged For Commit
+        append2File("f4.txt", "hello4");
+        append2File("f5.txt", "hello5");
+        //deleted
+        File f = new File("f6.txt");
+        f.delete();
+
+        //Untracked file: 本来就有一些
 
         gitlet("status");
     }

@@ -25,6 +25,7 @@ public class Blob implements Serializable {
     }
 
     public Blob() {}
+
     public Blob(File file) { //通过文本文件构造Blob
         content = Utils.readContentsAsString(file);
         id = Utils.sha1(file.getName(), content); //文件名也作为判别不同文件的依据

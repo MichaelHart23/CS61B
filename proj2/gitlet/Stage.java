@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Stage implements Serializable {
     HashMap<String, String> addition; //相比于父commit，添加或修改了哪些内容，文件名做键值，id做值
@@ -18,6 +19,20 @@ public class Stage implements Serializable {
         }
         s = Utils.readObject(Repository.STAGE, Stage.class);
         return s;
+    }
+
+    public void stageStatus() {
+        System.out.println("=== Staged Files ===");
+        for(Map.Entry<String, String> entry : addition.entrySet()) {
+            System.out.println(entry.getKey());
+        }
+        System.out.print("\n");
+
+        System.out.println("=== Removed Files ===");
+        for(Map.Entry<String, String> entry : removal.entrySet()) {
+            System.out.println(entry.getKey());
+        }
+        System.out.print("\n");
     }
 
     public void clearStage() { //清空暂存区并保存

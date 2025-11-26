@@ -98,12 +98,10 @@ public class Repository {
     public static void add(String filename) { //用于完成gitlet add
         File f = join(Repository.CWD, filename);
         if(!f.isFile()) {
-            System.err.println(filename + " is not a file.");
-            System.exit(-1);
+            Utils.exitWithError(filename + " is not a file.");
         }
         if(!f.exists()) {
-            System.err.println("File does not exist.");
-            System.exit(-1);
+            Utils.exitWithError("File does not exist.");
         }
         Blob b = new Blob(f);
         Stage s = Stage.getStage();
@@ -112,11 +110,11 @@ public class Repository {
         if(c.hasBlob(filename, b.getID())) {
             s.removeFromAddition(filename);
             s.saveStage();
-            System.exit(-1);
+            System.exit(0);
         }
         //检查暂存区中是否已经暂存了一模一样的文件
         if(s.hasAddedBlob(filename, b.getID())) {
-            System.exit(-1);
+            System.exit(0);
         }
         s.addItem(filename, b.getID());
         b.saveBolb();
@@ -202,6 +200,11 @@ public class Repository {
 
     public static void status() {
         Branch.branchesStatus();
+        Stage s = Stage.getStage();
+        s.stageStatus();
+        Commit c = Commit.getHeadCommit();
+        c.ModificationsNotStaged(s);
+        c.untracked();
     }
 
     public static void branch(String branchName) {

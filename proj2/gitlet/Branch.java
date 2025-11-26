@@ -77,6 +77,6 @@ public class Branch {
             }
             System.out.println(f.getName());
         }
-        System.out.println("\n");
+        System.out.print("\n");
     }
 }

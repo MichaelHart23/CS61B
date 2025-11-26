@@ -96,6 +96,44 @@ public class Commit implements Serializable {
         c.print();
     }
 
+    public void ModificationsNotStaged(Stage s) {
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        Commit presentFiles = new Commit();
+        for(File f : Repository.CWD.listFiles()) {
+            if(f.isDirectory()) { //跳过 .gitlet 目录
+                continue;
+            }
+            Blob b = new Blob(f);
+            presentFiles.map.put(f.getName(), b.id);
+        }
+
+        for(Map.Entry<String, String> entry : map.entrySet()) {
+            String filename = entry.getKey();
+            if(!presentFiles.map.containsKey(filename)) { //现在这个文件没有了
+                if(!s.removal.containsKey(filename)) { //这个文件不是通过rm命令删除的
+                    System.out.println(filename + "(deleted)");
+                }
+            } else if(!entry.getValue().equals(presentFiles.map.get(filename)) && !s.addition.containsKey(filename)) {
+                //内容改变了却没有被add
+                System.out.println(filename + "(modified)");
+            }
+        }
+        System.out.print("\n");
+    }
+
+    public void untracked() {
+        System.out.println("=== Untracked Files ===");
+        for(File f : Repository.CWD.listFiles()) {
+            if(f.isDirectory()) { //跳过 .gitlet 目录
+                continue;
+            }
+            if(!map.containsKey(f.getName())) {
+                System.out.println(f.getName());
+            }
+        }
+        System.out.print("\n");
+    }
+
     public boolean hasBlob(String filename, String blobID) {
         return map.containsKey(filename) && map.get(filename).equals(blobID);
     }
