@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
@@ -243,5 +244,20 @@ class Utils {
             System.out.println(message);
         }
         System.exit(-1);
+    }
+
+    public static void printList(List<String> list) {
+        list.sort(String::compareTo);
+        for(String s : list) {
+            System.out.println(s);
+        }
+    }
+
+    public static void createFile(File f) {
+        try {
+            f.createNewFile();
+        } catch (IOException e) {
+            Utils.exitWithError("created file failed.");
+        }
     }
 }

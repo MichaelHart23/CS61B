@@ -1,10 +1,9 @@
 package gitlet;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable; // TODO: You'll likely use this in this class
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -79,6 +78,16 @@ public class Commit implements Serializable {
     }
 
     public static Commit getCommit(String id) {
+        if(id.length() < 40) {
+            int len = id.length();
+            for(File f : Repository.OBJECTS.listFiles()) {
+                String fullID = f.getName();
+                if(fullID.substring(0, len).equals(id)) {
+                    id = fullID;
+                    break;
+                }
+            }
+        }
         File f = Utils.join(Repository.OBJECTS, id);
         if(f == null) {
             return null;
@@ -96,9 +105,42 @@ public class Commit implements Serializable {
         c.print();
     }
 
+    /**
+     * 完成从当前分支切换到目标分支的工作中与文件相关的部分，比如文件的创建，删除，更新
+     * @param branchName the branch to check out
+     */
+    public static void replaceFiles(String branchName) {
+        Commit current = Commit.getHeadCommit();
+        Commit target = Commit.getHeadCommitOfBranch(branchName);
+        if(target.id.equals(current.id)) { //commit 是同一个
+            return;
+        }
+        for(File f : Repository.CWD.listFiles()) {
+            if(f.isDirectory()) { //跳过 .gitlet
+                continue;
+            }
+            String filename = f.getName();
+            if(!current.containFile(filename) && target.containFile(filename)) {
+                Utils.exitWithError("There is an untracked file in the way; delete it, or add and commit it first.");
+            } else if(current.containFile(filename) && !target.containFile(filename)) {
+                f.delete();
+            }
+        }
+        for(Map.Entry<String, String> entry : target.map.entrySet()) {
+            String filename = entry.getKey();
+            File f = Utils.join(Repository.CWD, filename);
+            if(!f.exists()) {
+                Utils.createFile(f);
+            }
+            Blob b = Blob.getBlob(entry.getValue());
+            Utils.writeContents(f, b.content);
+        }
+    }
+
     public void ModificationsNotStaged(Stage s) {
         System.out.println("=== Modifications Not Staged For Commit ===");
         Commit presentFiles = new Commit();
+        List<String> list = new ArrayList<>();
         for(File f : Repository.CWD.listFiles()) {
             if(f.isDirectory()) { //跳过 .gitlet 目录
                 continue;
@@ -111,27 +153,43 @@ public class Commit implements Serializable {
             String filename = entry.getKey();
             if(!presentFiles.map.containsKey(filename)) { //现在这个文件没有了
                 if(!s.removal.containsKey(filename)) { //这个文件不是通过rm命令删除的
-                    System.out.println(filename + "(deleted)");
+                    list.add(filename + "(deleted)");
                 }
             } else if(!entry.getValue().equals(presentFiles.map.get(filename)) && !s.addition.containsKey(filename)) {
-                //内容改变了却没有被add
-                System.out.println(filename + "(modified)");
+                //内容相比current commit改变了却没有被add
+                list.add(filename + "(modified)");
+            } else if(s.addition.containsKey(filename)
+                    && !s.addition.get(filename).equals(presentFiles.map.get(filename))) {
+                //add之后又改内容了
+                list.add(filename + "(modified)");
             }
         }
+        Utils.printList(list);
         System.out.print("\n");
     }
 
     public void untracked() {
         System.out.println("=== Untracked Files ===");
+        List<String> list = new ArrayList<>();
         for(File f : Repository.CWD.listFiles()) {
             if(f.isDirectory()) { //跳过 .gitlet 目录
                 continue;
             }
             if(!map.containsKey(f.getName())) {
-                System.out.println(f.getName());
+                list.add(f.getName());
             }
         }
+        Utils.printList(list);
         System.out.print("\n");
+    }
+
+    public void replaceFile(File f) { //将工作区的文件f换为本commit中对应的文件
+        String filename = f.getName();
+        if(!map.containsKey(filename)) {
+            Utils.exitWithError("File does not exist in that commit.");
+        }
+        Blob b = Blob.getBlob(map.get(filename));
+        Utils.writeContents(f, b.content);
     }
 
     public boolean hasBlob(String filename, String blobID) {
@@ -177,5 +235,9 @@ public class Commit implements Serializable {
 
     public String getMessage() {
         return message;
+    }
+
+    public boolean containFile(String filename) {
+        return map.containsKey(filename);
     }
 }

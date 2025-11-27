@@ -59,6 +59,13 @@ public class Main {
                 validateDir();
                 Repository.status();
                 break;
+            case "checkout":
+                if(args.length != 2 && args.length != 3 && args.length != 4) {
+                    Utils.exitWithError("Incorrect operands.");
+                }
+                validateDir();
+                Repository.checkout(args);
+                break;
             case "branch":
                 validateNumArgs(args, 2);
                 validateDir();

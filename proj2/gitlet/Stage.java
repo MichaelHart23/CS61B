@@ -1,7 +1,9 @@
 package gitlet;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Stage implements Serializable {
@@ -23,19 +25,23 @@ public class Stage implements Serializable {
 
     public void stageStatus() {
         System.out.println("=== Staged Files ===");
+        List<String> listForAddition = new ArrayList<>();
         for(Map.Entry<String, String> entry : addition.entrySet()) {
-            System.out.println(entry.getKey());
+            listForAddition.add(entry.getKey());
         }
+        Utils.printList(listForAddition);
         System.out.print("\n");
 
         System.out.println("=== Removed Files ===");
+        List<String> listForRemoval = new ArrayList<>();
         for(Map.Entry<String, String> entry : removal.entrySet()) {
-            System.out.println(entry.getKey());
+            listForRemoval.add(entry.getKey());
         }
+        Utils.printList(listForRemoval);
         System.out.print("\n");
     }
 
-    public void clearStage() { //清空暂存区并保存
+    public void clearStageAndSave() { //清空暂存区并保存
         addition.clear();
         removal.clear();
         saveStage();

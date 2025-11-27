@@ -2,11 +2,9 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayDeque;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static gitlet.Utils.join;
@@ -130,7 +128,7 @@ public class Repository {
         Commit c = new Commit(commitMessage, pa, s, new Date());
         c.saveCommit();
         Commit.updateHeadCommit(c.getID());  //更新commit head
-        s.clearStage();   //清空暂存区
+        s.clearStageAndSave();   //清空暂存区
     }
 
     public static void rm(String filename) {
@@ -205,6 +203,36 @@ public class Repository {
         Commit c = Commit.getHeadCommit();
         c.ModificationsNotStaged(s);
         c.untracked();
+    }
+
+
+
+    public static void checkout(String[] args) {
+        if(args.length == 2) {
+            Branch.switchBranch(args[1]);
+            return;
+        }
+
+        Commit c = null;
+        if(args[args.length - 2] != "--") {
+            Utils.exitWithError("Incorrect operands.");
+        }
+        File f = Utils.join(Repository.CWD, args[args.length - 1]);
+        if(args.length == 3) {
+            c = Commit.getHeadCommit();
+        } else {
+            String id = args[1];
+            c = Commit.getCommit(id);
+            if(c == null) {
+                Utils.exitWithError("No commit with that id exists.");
+            }
+        }
+
+        if(!c.hasFile(f.getName())) {
+            Utils.exitWithError("File does not exist in that commit.");
+        }
+
+        c.replaceFile(f);
     }
 
     public static void branch(String branchName) {

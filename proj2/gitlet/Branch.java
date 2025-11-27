@@ -3,7 +3,9 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 public class Branch {
     public static File getCurrentBranchFile() {
@@ -23,7 +25,6 @@ public class Branch {
         }
         Commit c = Commit.getHeadCommit();
         Utils.writeContents(f, c.getID());
-        Utils.writeContents(Repository.HEAD, branchName);
     }
 
     /* 该函数并不完善，并不能体现出各个分支之间的merge关系. 也并不反映commit时间顺序*/
@@ -71,12 +72,31 @@ public class Branch {
     public static void branchesStatus() {
         System.out.println("=== Branches ===");
         String currentBranchName = Utils.readContentsAsString(Repository.HEAD);
+        List<String> list = new ArrayList<>();
         for(File f : Repository.BRACNCHES.listFiles()) {
-            if(f.getName().equals(currentBranchName)) {
+            list.add(f.getName());
+        }
+        list.sort(String::compareTo);
+        for(String s : list) {
+            if(s.equals(currentBranchName)) {
                 System.out.print("*");
             }
-            System.out.println(f.getName());
+            System.out.println(s);
         }
         System.out.print("\n");
+    }
+
+    public static void switchBranch(String branchName) {
+        File f = Utils.join(Repository.BRACNCHES, branchName);
+        if(!f.exists()) {
+            Utils.exitWithError("No such branch exists.");
+        }
+        String currentBranch = Utils.readContentsAsString(Repository.HEAD); //获取现在所处的分支名
+        if(currentBranch.equals(branchName)) {
+            Utils.exitWithError("No need to checkout the current branch.");
+        }
+        Commit.replaceFiles(branchName);
+        Utils.writeContents(Repository.HEAD, branchName);
+        Stage.getStage().clearStageAndSave();
     }
 }

@@ -40,6 +40,13 @@ public class GitletTest {
         Utils.writeContents(f, content);
     }
 
+    private void addAndCommit(String message, String... files) {
+        for(String s : files) {
+            gitlet("add", s);
+        }
+        gitlet("commit", message);
+    }
+
     @Before
     public void setup() {
         if(Repository.GITLET_DIR.exists()) {
@@ -66,7 +73,7 @@ public class GitletTest {
     }
 
     @Test
-    public void testForClear() {
+    public void Clear() {
         if(Repository.GITLET_DIR.exists()) {
             delete(Repository.GITLET_DIR);
         }
@@ -236,14 +243,73 @@ public class GitletTest {
         gitlet("rm", "f3.txt");
 
         //Modifications Not Staged For Commit
+        //修改了文件
         append2File("f4.txt", "hello4");
-        append2File("f5.txt", "hello5");
-        //deleted
+        //不通过rm删除文件
         File f = new File("f6.txt");
         f.delete();
+        //add之后又修改
+        append2File("f5.txt", "hello5");
+        gitlet("add", "f5.txt");
+        append2File("f5.txt", "hello5");
+        //add之后删除
+        append2File("f7.txt", "hello7");
+        gitlet("add", "f7.txt");
+        File f7 = new File("f7.txt");
+        f7.delete();
+
 
         //Untracked file: 本来就有一些
 
         gitlet("status");
+    }
+
+    @Test
+    public void testCheckoutBranch() {
+        /* master switch to second
+         * f1 共有
+         * f2 second独有，,需重新创建，之后提示并终止运行
+         * f3 共有，被覆写
+         * f4 master独有
+         *
+         */
+        writeFile("f1.txt", "1");
+        addAndCommit("master commit 1", "f1.txt");;
+        append2File("f1.txt", "1");
+        writeFile("f3.txt", "content for master");
+        addAndCommit( "master commit 2", "f1.txt", "f3.txt");
+
+
+        gitlet("branch", "second");
+        gitlet("checkout", "second");
+
+
+        writeFile("f1.txt", "second content");
+        writeFile("f2.txt", "2");
+        addAndCommit( "second branch commit 1", "f2.txt");
+        append2File("f2.txt", "2");
+        writeFile("f3.txt", "content for second branch");
+        addAndCommit("second branch commit 2", "f2.txt", "f3.txt");
+
+
+        gitlet("checkout", "master");
+        writeFile("f4.txt", "4");
+        addAndCommit( "master commit 3", "f4.txt");
+        //writeFile("f2.txt", "another f2.txt");
+        gitlet("checkout", "second");
+    }
+
+    @Test
+    public void testCheckoutReplaceFile() {
+        writeFile("f1.txt", "version1 of f1");
+        addAndCommit("commit1", "f1.txt");
+        Commit c = Commit.getHeadCommit();
+        writeFile("f1.txt", "version2 of f1");
+        addAndCommit("commit1", "f1.txt");
+        writeFile("f1.txt", "version3 of f1");
+        gitlet("checkout", "--", "f1.txt");
+        String id = c.getID().substring(0, 6);
+        gitlet("checkout", id, "--", "f1.txt");
+
     }
 }
