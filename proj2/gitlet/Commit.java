@@ -109,9 +109,8 @@ public class Commit implements Serializable {
      * 完成从当前分支切换到目标分支的工作中与文件相关的部分，比如文件的创建，删除，更新
      * @param branchName the branch to check out
      */
-    public static void replaceFiles(String branchName) {
+    public static void replaceFiles(Commit target) {
         Commit current = Commit.getHeadCommit();
-        Commit target = Commit.getHeadCommitOfBranch(branchName);
         if(target.id.equals(current.id)) { //commit 是同一个
             return;
         }

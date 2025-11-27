@@ -71,6 +71,16 @@ public class Main {
                 validateDir();
                 Repository.branch(args[1]);
                 break;
+            case "rm-branch":
+                validateNumArgs(args, 2);
+                validateDir();
+                Repository.rmBranch(args[1]);
+                break;
+            case "reset":
+                validateNumArgs(args, 2);
+                validateDir();
+                Repository.reset(args[1]);
+                break;
             default:
                 System.out.println("No command with that name exists.");
                 break;

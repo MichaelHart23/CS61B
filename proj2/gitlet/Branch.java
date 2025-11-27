@@ -95,7 +95,8 @@ public class Branch {
         if(currentBranch.equals(branchName)) {
             Utils.exitWithError("No need to checkout the current branch.");
         }
-        Commit.replaceFiles(branchName);
+        Commit taget = Commit.getHeadCommitOfBranch(branchName);
+        Commit.replaceFiles(taget);
         Utils.writeContents(Repository.HEAD, branchName);
         Stage.getStage().clearStageAndSave();
     }

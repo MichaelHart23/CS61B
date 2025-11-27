@@ -238,4 +238,27 @@ public class Repository {
     public static void branch(String branchName) {
         Branch.createBranch(branchName);
     }
+
+    public static void rmBranch(String branchName) {
+        String currentBranch = Utils.readContentsAsString(Repository.HEAD);
+        if(currentBranch.equals(branchName)) {
+            Utils.exitWithError("Cannot remove the current branch.");
+        }
+        File f = Utils.join(Repository.BRACNCHES, branchName);
+        if(!f.exists()) {
+            Utils.exitWithError("A branch with that name does not exist.");
+        }
+        f.delete();
+    }
+
+    public static void reset(String commitID) {
+        Commit c = Commit.getCommit(commitID);
+        if(c == null) {
+            Utils.exitWithError("No commit with that id exists.");
+        }
+        Commit.replaceFiles(c);
+        File f = Branch.getCurrentBranchFile();
+        Utils.writeContents(f, c.getID());
+        Stage.getStage().clearStageAndSave();
+    }
 }
