@@ -163,7 +163,7 @@ public class Repository {
                 action.accept(c);
             }
             visited.add(c.getID());
-            if(c.getID().equals(Commit.initialCommitID)) { //当前commit是initial commit
+            if(c.getParentID() == null) { //当前commit是initial commit
                 break;
             }
             c = Commit.getCommit(c.getParentID());

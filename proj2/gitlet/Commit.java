@@ -23,11 +23,6 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
 
-    //当更改Commit的结构时可能会改变, 从Windows换到Linux也要改
-    // windows: a497e1842e2865d93b97cf6e38802025bd776121
-    // Linux: d2ee103fae34c3693e7c712f9063d46a6355bb42
-    public static final String initialCommitID = "d2ee103fae34c3693e7c712f9063d46a6355bb42";
-
     /** The message of this Commit. */
     private String message;
     /*bolbs的文件名与哈希值的键值对 */
