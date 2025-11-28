@@ -74,4 +74,8 @@ public class Stage implements Serializable {
     public void saveStage() {
         Utils.writeObject(Repository.STAGE, this);
     }
+
+    public boolean isEmpty() {
+        return addition.isEmpty() && removal.isEmpty();
+    }
 }

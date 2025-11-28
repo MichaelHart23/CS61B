@@ -18,8 +18,6 @@ import static gitlet.Utils.join;
  */
 public class Repository {
     /**
-     * TODO: add instance variables here.
-     *
      * List all instance variables of the Repository class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided two examples for you.
@@ -33,7 +31,7 @@ public class Repository {
     /*存放所有blobs和commits的目录 */
     public static final File OBJECTS = join(GITLET_DIR, "objects");
     /*存放所有分支的目录，每个以分支名命名的文件中存的是head commit的哈希值 */
-    public static final File BRACNCHES = join(GITLET_DIR, "branches");
+    public static final File BRANCHES = join(GITLET_DIR, "branches");
     /*当前的commit head是哪个分支，存的是分支名 */
     public static final File HEAD = join(GITLET_DIR, "HEAD");
     /*暂存区 用来存放要添加的文件，要修改的文件，要删除的文件*/
@@ -47,7 +45,7 @@ public class Repository {
         }
         GITLET_DIR.mkdir();
         OBJECTS.mkdir();
-        BRACNCHES.mkdir();
+        BRANCHES.mkdir();
         try {
             HEAD.createNewFile();
         } catch (IOException e) {
@@ -72,7 +70,7 @@ public class Repository {
     }
     //初始化时创建master分支
     private static void makeMasterBranch(String id) {
-        File master = join(BRACNCHES, "master");
+        File master = join(BRANCHES, "master");
         try {
             master.createNewFile();
         } catch (IOException e) {
@@ -90,16 +88,16 @@ public class Repository {
     }
 
     public static boolean initialized() {
-        return GITLET_DIR.exists() && OBJECTS.exists() && BRACNCHES.exists() && HEAD.exists() && STAGE.exists();
+        return GITLET_DIR.exists() && OBJECTS.exists() && BRANCHES.exists() && HEAD.exists() && STAGE.exists();
     }
 
     public static void add(String filename) { //用于完成gitlet add
         File f = join(Repository.CWD, filename);
         if(!f.isFile()) {
-            Utils.exitWithError(filename + " is not a file.");
+            Utils.exitWith(filename + " is not a file.");
         }
         if(!f.exists()) {
-            Utils.exitWithError("File does not exist.");
+            Utils.exitWith("File does not exist.");
         }
         Blob b = new Blob(f);
         Stage s = Stage.getStage();
@@ -122,7 +120,7 @@ public class Repository {
     public static void commit(String commitMessage) {
         Stage s = Stage.getStage();
         if(s.addition.isEmpty() && s.removal.isEmpty()) {
-            Utils.exitWithError("No changes added to the commit.");
+            Utils.exitWith("No changes added to the commit.");
         }
         Commit pa = Commit.getHeadCommit();
         Commit c = new Commit(commitMessage, pa, s, new Date());
@@ -137,7 +135,7 @@ public class Repository {
         File f = Utils.join(CWD, filename);
         Blob b = new Blob(f);
         if(!s.hasAddedFile(filename) && !c.hasFile(filename)) {
-            Utils.exitWithError("No reason to remove the file.");
+            Utils.exitWith("No reason to remove the file.");
         }
         if(f.exists()) {
             f.delete(); //若该文件仍在工作区，删除该文件
@@ -179,7 +177,7 @@ public class Repository {
 
     public static void global_log() {
         HashSet<String> visited = new HashSet<>();
-        for(File f : Repository.BRACNCHES.listFiles()) {
+        for(File f : Repository.BRANCHES.listFiles()) {
             String id = Utils.readContentsAsString(f);
             Commit c = Commit.getCommit(id);
             traverseBranch(c, visited, (commit)->{ return true; }, Commit::printCommit);
@@ -188,7 +186,7 @@ public class Repository {
 
     public static void find(String commitMessage) {
         HashSet<String> visited = new HashSet<>();
-        for(File f : Repository.BRACNCHES.listFiles()) {
+        for(File f : Repository.BRANCHES.listFiles()) {
             String id = Utils.readContentsAsString(f);
             Commit c = Commit.getCommit(id);
             traverseBranch(c, visited, (commit)->{return commit.getMessage().equals(commitMessage);},
@@ -215,7 +213,7 @@ public class Repository {
 
         Commit c = null;
         if(args[args.length - 2] != "--") {
-            Utils.exitWithError("Incorrect operands.");
+            Utils.exitWith("Incorrect operands.");
         }
         File f = Utils.join(Repository.CWD, args[args.length - 1]);
         if(args.length == 3) {
@@ -224,12 +222,12 @@ public class Repository {
             String id = args[1];
             c = Commit.getCommit(id);
             if(c == null) {
-                Utils.exitWithError("No commit with that id exists.");
+                Utils.exitWith("No commit with that id exists.");
             }
         }
 
         if(!c.hasFile(f.getName())) {
-            Utils.exitWithError("File does not exist in that commit.");
+            Utils.exitWith("File does not exist in that commit.");
         }
 
         c.replaceFile(f);
@@ -242,11 +240,11 @@ public class Repository {
     public static void rmBranch(String branchName) {
         String currentBranch = Utils.readContentsAsString(Repository.HEAD);
         if(currentBranch.equals(branchName)) {
-            Utils.exitWithError("Cannot remove the current branch.");
+            Utils.exitWith("Cannot remove the current branch.");
         }
-        File f = Utils.join(Repository.BRACNCHES, branchName);
+        File f = Utils.join(Repository.BRANCHES, branchName);
         if(!f.exists()) {
-            Utils.exitWithError("A branch with that name does not exist.");
+            Utils.exitWith("A branch with that name does not exist.");
         }
         f.delete();
     }
@@ -254,11 +252,47 @@ public class Repository {
     public static void reset(String commitID) {
         Commit c = Commit.getCommit(commitID);
         if(c == null) {
-            Utils.exitWithError("No commit with that id exists.");
+            Utils.exitWith("No commit with that id exists.");
         }
         Commit.replaceFiles(c);
         File f = Branch.getCurrentBranchFile();
         Utils.writeContents(f, c.getID());
         Stage.getStage().clearStageAndSave();
+    }
+
+    public static void merge(String branchName) {
+        Stage s = Stage.getStage();
+        if(!s.isEmpty()) {
+            Utils.exitWith("You have uncommitted changes.");
+        }
+        File givenBranch = Branch.getBranchFile(branchName);
+        if(givenBranch == null) {
+            Utils.exitWith("A branch with that name does not exist.");
+        }
+        File currentBranch = Branch.getCurrentBranchFile();
+        if(givenBranch.getName().equals(currentBranch.getName())) {
+            Utils.exitWith("Cannot merge a branch with itself.");
+        }
+        Commit cur = Commit.getHeadCommit();
+        Commit given = Commit.getHeadCommitOfBranch(branchName);
+        Commit sp = Commit.getSplitPoint(cur, given);
+        if(sp.getID().equals(cur.getID())) {
+            Branch.switchBranch(branchName);
+            Utils.exitWith("Current branch fast-forwarded.");
+        }
+        if(sp.getID().equals(given.getID())) {
+            Utils.exitWith("Given branch is an ancestor of the current branch.");
+        }
+
+        Commit c = Commit.merge(cur, given, sp);
+        c.setMessage("Merged " + givenBranch.getName() + " into " + currentBranch.getName() + ".");
+        c.updateID();
+        c.saveCommit();
+        Commit.updateHeadCommit(c.getID());
+
+        //remove branch
+        File f = Utils.join(Repository.BRANCHES, branchName);
+        f.delete();
+
     }
 }

@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.Date;
 
 public class GitletTest {
-    private final int filenum = 8;
+    private final int filenum = 15;
     private void gitlet(String... args) {
         Main.main(args);
     }
@@ -312,4 +312,131 @@ public class GitletTest {
         gitlet("checkout", id, "--", "f1.txt");
 
     }
+
+    @Test
+    public void testMerge() {
+        /* f1.txt sp有 master没改 given改了 情况1
+         * f2.txt sp有 master改了 given没改 情况2
+         * f3.txt sp有 master改了 given也改 改的一样 情况3
+         * f4.txt sp有 master删了 given没改 情况7
+         * f5.txt sp有 master没改 given删了 情况6
+         * f6.txt sp有 master删了 given改了 情况8  可以在merge之前在master创建来查看是否终止
+         * f7.txt sp有 master改了 given删了 情况8
+         * f8.txt sp有 master删了 given删了 情况3
+         * f9.txt sp有 master改了 given改了 改的不一样 情况8
+         *
+         * f10.txt sp无 master添加了 given未添加 情况6
+         * f11.txt sp无 master未添加 given添加了 情况5 可以在merge之前在master创建来查看是否终止
+         */
+        for(int i = 1; i <= 9; i++) {
+            writeFile(String.format("f%d.txt", i), String.format("hello%d", i));
+            gitlet("add", String.format("f%d.txt", i));
+        }
+        gitlet("commit", "commit1 split point");
+        //given
+        {
+            gitlet("branch", "given");
+            gitlet("checkout", "given");
+            writeFile("f1.txt", "given modified f1");
+            writeFile("f3.txt", "both master and given modified but same");
+            writeFile("f6.txt", "given modified f6");
+            writeFile("f9.txt", "given modified f9");
+            gitlet("rm", "f5.txt");
+            gitlet("rm", "f7.txt");
+            gitlet("rm", "f8.txt");
+
+            writeFile("f11.txt", "given added f11");
+
+            addAndCommit("given commit", "f1.txt", "f3.txt", "f6.txt", "f9.txt", "f11.txt");
+        }
+        // master
+        {
+            gitlet("checkout", "master");
+            writeFile("f2.txt", "master modified f2");
+            writeFile("f3.txt", "both master and given modified but same");
+            writeFile("f7.txt", "master modified f7");
+            writeFile("f9.txt", "master modified f9");
+            gitlet("rm", "f4.txt");
+            gitlet("rm", "f6.txt");
+            gitlet("rm", "f8.txt");
+
+            writeFile("f10.txt", "master added f10");
+
+            addAndCommit("given commit", "f2.txt", "f3.txt", "f7.txt", "f9.txt", "f10.txt");
+        }
+//        File f = Utils.join(Repository.CWD, "f6.txt");
+//        Utils.createFile(f);
+
+//        File f = Utils.join(Repository.CWD, "f11.txt");
+//        Utils.createFile(f);
+        
+        gitlet("merge", "given");
+
+        Commit c = Commit.getHeadCommit();
+        assertTrue(c.getMessage().equals("Merged given into master."));
+
+
+        assertTrue(c.containFile("f1.txt") && c.containFile("f2.txt")
+                && c.containFile("f3.txt") && c.containFile("f6.txt")
+                && c.containFile("f7.txt") && c.containFile("f9.txt")
+                && c.containFile("f10.txt") && c.containFile("f11.txt"));
+        assertFalse(c.containFile("f4.txt") || c.containFile("f5.txt")
+                || c.containFile("f8.txt"));
+
+        File f1 = Utils.join(Repository.CWD, "f1.txt");
+        String contentF1 = Utils.readContentsAsString(f1);
+        assertTrue(contentF1.equals("given modified f1"));
+
+        File f2 = Utils.join(Repository.CWD, "f2.txt");
+        String contentF2 = Utils.readContentsAsString(f2);
+        assertTrue(contentF2.equals("master modified f2"));
+
+        File f3 = Utils.join(Repository.CWD, "f3.txt");
+        String contentF3 = Utils.readContentsAsString(f3);
+        assertTrue(contentF3.equals("both master and given modified but same"));
+
+        File f4 = Utils.join(Repository.CWD, "f4.txt");
+        assertFalse(f4.exists());
+
+        File f5 = Utils.join(Repository.CWD, "f5.txt");
+        assertFalse(f5.exists());
+
+        File f6 = Utils.join(Repository.CWD, "f6.txt");
+        String contentF6 = Utils.readContentsAsString(f6);
+        assertTrue(contentF6.equals("<<<<<<< HEAD\n" +
+                "" +
+                "=======\n" +
+                "given modified f6" +
+                ">>>>>>>"));
+
+        File f7 = Utils.join(Repository.CWD, "f7.txt");
+        String contentF7 = Utils.readContentsAsString(f7);
+        assertTrue(contentF7.equals("<<<<<<< HEAD\n" +
+                "master modified f7" +
+                "=======\n" +
+                "" +
+                ">>>>>>>"));
+
+        File f8 = Utils.join(Repository.CWD, "f8.txt");
+        assertFalse(f8.exists());
+
+        File f9 = Utils.join(Repository.CWD, "f9.txt");
+        String contentF9 = Utils.readContentsAsString(f9);
+        assertTrue(contentF9.equals("<<<<<<< HEAD\n" +
+                "master modified f9" +
+                "=======\n" +
+                "given modified f9" +
+                ">>>>>>>"));
+
+        File f10 = Utils.join(Repository.CWD, "f10.txt");
+        String contentF10 = Utils.readContentsAsString(f10);
+        assertTrue(contentF10.equals("master added f10"));
+
+        File f11 = Utils.join(Repository.CWD, "f11.txt");
+        String contentF11 = Utils.readContentsAsString(f11);
+        assertTrue(contentF11.equals("given added f11"));
+    }
+
+
+
 }

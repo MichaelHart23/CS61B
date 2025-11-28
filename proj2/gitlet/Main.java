@@ -61,7 +61,7 @@ public class Main {
                 break;
             case "checkout":
                 if(args.length != 2 && args.length != 3 && args.length != 4) {
-                    Utils.exitWithError("Incorrect operands.");
+                    Utils.exitWith("Incorrect operands.");
                 }
                 validateDir();
                 Repository.checkout(args);
@@ -80,6 +80,11 @@ public class Main {
                 validateNumArgs(args, 2);
                 validateDir();
                 Repository.reset(args[1]);
+                break;
+            case "merge":
+                validateNumArgs(args, 2);
+                validateDir();
+                Repository.merge(args[1]);
                 break;
             default:
                 System.out.println("No command with that name exists.");

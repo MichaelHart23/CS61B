@@ -10,18 +10,22 @@ import java.util.List;
 public class Branch {
     public static File getCurrentBranchFile() {
         String branch = Utils.readContentsAsString(Repository.HEAD); //获取现在所处的分支名
-        return Utils.join(Repository.BRACNCHES, branch); //打开该分支文件
+        return Utils.join(Repository.BRANCHES, branch); //打开该分支文件
+    }
+
+    public static File getBranchFile(String branchName) {
+        return Utils.join(Repository.BRANCHES, branchName);
     }
 
     public static void createBranch(String branchName) {
-        File f = Utils.join(Repository.BRACNCHES, branchName);
+        File f = Utils.join(Repository.BRANCHES, branchName);
         if(f.exists()) {
-            Utils.exitWithError("A branch with that name already exists.");
+            Utils.exitWith("A branch with that name already exists.");
         }
         try {
             f.createNewFile();
         } catch (IOException e) {
-            Utils.exitWithError(e.getMessage());
+            Utils.exitWith(e.getMessage());
         }
         Commit c = Commit.getHeadCommit();
         Utils.writeContents(f, c.getID());
@@ -33,7 +37,7 @@ public class Branch {
         ArrayDeque<Commit> headQueue = new ArrayDeque<>();
         ArrayDeque<ArrayDeque<Commit>> queues = new ArrayDeque<>();
 
-        for(File f : Repository.BRACNCHES.listFiles()) {
+        for(File f : Repository.BRANCHES.listFiles()) {
             String id = Utils.readContentsAsString(f);
             File F = Utils.join(Repository.OBJECTS, id);
             Commit c = Utils.readObject(F, Commit.class);
@@ -73,7 +77,7 @@ public class Branch {
         System.out.println("=== Branches ===");
         String currentBranchName = Utils.readContentsAsString(Repository.HEAD);
         List<String> list = new ArrayList<>();
-        for(File f : Repository.BRACNCHES.listFiles()) {
+        for(File f : Repository.BRANCHES.listFiles()) {
             list.add(f.getName());
         }
         list.sort(String::compareTo);
@@ -87,13 +91,13 @@ public class Branch {
     }
 
     public static void switchBranch(String branchName) {
-        File f = Utils.join(Repository.BRACNCHES, branchName);
+        File f = Utils.join(Repository.BRANCHES, branchName);
         if(!f.exists()) {
-            Utils.exitWithError("No such branch exists.");
+            Utils.exitWith("No such branch exists.");
         }
         String currentBranch = Utils.readContentsAsString(Repository.HEAD); //获取现在所处的分支名
         if(currentBranch.equals(branchName)) {
-            Utils.exitWithError("No need to checkout the current branch.");
+            Utils.exitWith("No need to checkout the current branch.");
         }
         Commit taget = Commit.getHeadCommitOfBranch(branchName);
         Commit.replaceFiles(taget);
