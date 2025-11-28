@@ -102,14 +102,14 @@ public class Main {
      public static void validateNumArgs(String[] args, int n) {
         if (args.length != n) {
             System.out.println("Incorrect operands.");
-            System.exit(-1);
+            System.exit(0);
         }
     }
 
     public static void validateDir() {
-        if(!Repository.initialized()) {
+        if (!Repository.initialized()) {
             System.out.println("Not in an initialized Gitlet directory.");
-            System.exit(-1);
+            System.exit(0);
         }
     }
 }

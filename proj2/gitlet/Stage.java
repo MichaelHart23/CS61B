@@ -15,7 +15,7 @@ public class Stage implements Serializable {
     }
     public static Stage getStage() { //返回当前的暂存区
         Stage s;
-        if(Repository.STAGE.length() == 0) { //暂存区为空
+        if (Repository.STAGE.length() == 0) { //暂存区为空
             s = new Stage();
             return s;
         }
@@ -26,7 +26,7 @@ public class Stage implements Serializable {
     public void stageStatus() {
         System.out.println("=== Staged Files ===");
         List<String> listForAddition = new ArrayList<>();
-        for(Map.Entry<String, String> entry : addition.entrySet()) {
+        for (Map.Entry<String, String> entry : addition.entrySet()) {
             listForAddition.add(entry.getKey());
         }
         Utils.printList(listForAddition);
@@ -34,7 +34,7 @@ public class Stage implements Serializable {
 
         System.out.println("=== Removed Files ===");
         List<String> listForRemoval = new ArrayList<>();
-        for(Map.Entry<String, String> entry : removal.entrySet()) {
+        for (Map.Entry<String, String> entry : removal.entrySet()) {
             listForRemoval.add(entry.getKey());
         }
         Utils.printList(listForRemoval);
@@ -52,7 +52,7 @@ public class Stage implements Serializable {
     }
 
     public boolean hasAddedFile(String filename) {
-        if(addition == null) {
+        if (addition == null) {
             return false;
         }
         return addition.containsKey(filename);
@@ -60,13 +60,13 @@ public class Stage implements Serializable {
 
     public void addItem(String filename, String id) { //有一个blob要加进暂存区
         addition.put(filename, id);
-        if(removal.containsKey(filename)) {
+        if (removal.containsKey(filename)) {
             removal.remove(filename);
         }
     }
 
     public void removeFromAddition(String filename) {
-        if(addition.containsKey(filename)) {
+        if (addition.containsKey(filename)) {
             addition.remove(filename);
         }
     }
