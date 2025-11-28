@@ -2,7 +2,13 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable; // TODO: You'll likely use this in this class
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -17,8 +23,10 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
 
-    //当更改Commit的结构时可能会改变
-    public static final String initialCommitID = "a497e1842e2865d93b97cf6e38802025bd776121";
+    //当更改Commit的结构时可能会改变, 从Windows换到Linux也要改
+    // windows: a497e1842e2865d93b97cf6e38802025bd776121
+    // Linux: d2ee103fae34c3693e7c712f9063d46a6355bb42
+    public static final String initialCommitID = "d2ee103fae34c3693e7c712f9063d46a6355bb42";
 
     /** The message of this Commit. */
     private String message;
@@ -372,7 +380,10 @@ public class Commit implements Serializable {
         if(secondParent != null) {
             System.out.println("Merge " + parent.substring(0, 7) + " " + secondParent.substring(0, 7));
         }
-        System.out.println("Date: " + timeStamp.toString());
+        String formatted = new Formatter().format("%ta %tb %td %tT %tY %tz",
+                                          timeStamp, timeStamp, timeStamp, timeStamp, timeStamp, timeStamp)
+                                          .toString();
+        System.out.println("Date: " + formatted);
         System.out.println(message);
         System.out.print("\n");
     }

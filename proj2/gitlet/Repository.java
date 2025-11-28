@@ -212,7 +212,7 @@ public class Repository {
         }
 
         Commit c = null;
-        if(args[args.length - 2] != "--") {
+        if(!args[args.length - 2].equals("--")) {
             Utils.exitWith("Incorrect operands.");
         }
         File f = Utils.join(Repository.CWD, args[args.length - 1]);
