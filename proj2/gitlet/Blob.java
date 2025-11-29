@@ -14,7 +14,7 @@ public class Blob implements Serializable {
     }
 
     public void saveBolb() {
-        File f = Utils.join(Repository.OBJECTS, id);
+        File f = Utils.join(Repository.BLOBS, id);
         try {
             f.createNewFile();
         } catch (IOException e) {
@@ -46,7 +46,7 @@ public class Blob implements Serializable {
     }
 
     public static Blob getBlob(String bid) {
-        File f = Utils.join(Repository.OBJECTS, bid);
+        File f = Utils.join(Repository.BLOBS, bid);
         Blob b = Utils.readObject(f, Blob.class);
         return b;
     }

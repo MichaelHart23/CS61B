@@ -43,8 +43,11 @@ public class Commit implements Serializable {
         for (Map.Entry<String, String> entry : s.addition.entrySet()) {
             map.put(entry.getKey(), entry.getValue());
         }
-        for (Map.Entry<String, String> entry : s.removal.entrySet()) {
-            map.remove(entry.getKey());
+        // for (Map.Entry<String, String> entry : s.removal.entrySet()) {
+        //     map.remove(entry.getKey());
+        // }
+        for(String str : s.removal) {
+            map.remove(str);
         }
         parent = pa.id;
         message = ms;
@@ -64,7 +67,7 @@ public class Commit implements Serializable {
     public static Commit getHeadCommit() {
         File f = Branch.getCurrentBranchFile();
         String headID = Utils.readContentsAsString(f);     //获取该分支的head commit的id
-        File F = Utils.join(Repository.OBJECTS, headID);   //打开该commit对应的文件
+        File F = Utils.join(Repository.COMMITS, headID);   //打开该commit对应的文件
         Commit commit = Utils.readObject(F, Commit.class); //读取head commit
         return commit;
     }
@@ -72,7 +75,7 @@ public class Commit implements Serializable {
     public static Commit getHeadCommitOfBranch(String branchName) {
         File f = Utils.join(Repository.BRANCHES, branchName);
         String headID = Utils.readContentsAsString(f);
-        File F = Utils.join(Repository.OBJECTS, headID);   //打开该commit对应的文件
+        File F = Utils.join(Repository.COMMITS, headID);   //打开该commit对应的文件
         Commit commit = Utils.readObject(F, Commit.class); //读取head commit
         return commit;
     }
@@ -80,7 +83,7 @@ public class Commit implements Serializable {
     public static Commit getCommit(String id) {
         if (id.length() < 40) {
             int len = id.length();
-            for (File f : Repository.OBJECTS.listFiles()) {
+            for (File f : Repository.COMMITS.listFiles()) {
                 String fullID = f.getName();
                 if (fullID.substring(0, len).equals(id)) {
                     id = fullID;
@@ -88,8 +91,8 @@ public class Commit implements Serializable {
                 }
             }
         }
-        File f = Utils.join(Repository.OBJECTS, id);
-        if (f == null) {
+        File f = Utils.join(Repository.COMMITS, id);
+        if (!f.exists()) {
             return null;
         }
         Commit commit = Utils.readObject(f, Commit.class); //读取head commit
@@ -178,7 +181,7 @@ public class Commit implements Serializable {
         } else {
             s2 = "";
         }
-        return "<<<<<<< HEAD\n" + s1 + "=======\n" + s2 + ">>>>>>>";
+        return "<<<<<<< HEAD\n" + s1 + "\n" + "=======\n" + s2 + "\n" + ">>>>>>>";
     }
 
     public static Commit merge(Commit cur, Commit given, Commit sp) {
@@ -223,7 +226,7 @@ public class Commit implements Serializable {
                 if (cur.containFile(filename) && entry.getValue().equals(cur.map.get(filename))) {
                     //given删了，cur未修改 情况6
                     Blob b = Blob.getBlob(cur.map.get(filename));
-                    s.removal.put(filename, b.getID());
+                    s.removal.add(filename);
                 } else if (given.containFile(filename) && entry.getValue().equals(given.map.get(filename))) {
                     //cur删了，given未修改 情况7
                     //若此时工作区中仍有该文件，该不该删呢？感觉这种情况不必处理, 也不用报错
@@ -283,8 +286,14 @@ public class Commit implements Serializable {
             Blob b = Blob.getBlob(entry.getValue());
             Utils.writeContents(f, b.content);
         }
-        for (Map.Entry<String, String> entry : s.removal.entrySet()) {
-            File f = Utils.join(Repository.CWD, entry.getKey());
+        // for (Map.Entry<String, String> entry : s.removal.entrySet()) {
+        //     File f = Utils.join(Repository.CWD, entry.getKey());
+        //     if (f.exists()) {
+        //         f.delete();
+        //     }
+        // }
+        for(String str : s.removal) {
+            File f = Utils.join(Repository.CWD, str);
             if (f.exists()) {
                 f.delete();
             }
@@ -314,7 +323,7 @@ public class Commit implements Serializable {
         for (Map.Entry<String, String> entry : map.entrySet()) {
             String filename = entry.getKey();
             if (!presentFiles.map.containsKey(filename)) { //现在这个文件没有了
-                if (!s.removal.containsKey(filename)) { //这个文件不是通过rm命令删除的
+                if (!s.removal.contains(filename)) { //这个文件不是通过rm命令删除的
                     list.add(filename + "(deleted)");
                 }
             } else if (!entry.getValue().equals(presentFiles.map.get(filename)) && !s.addition.containsKey(filename)) {
@@ -330,14 +339,14 @@ public class Commit implements Serializable {
         System.out.print("\n");
     }
 
-    public void untracked() {
+    public void untracked(Stage s) {
         System.out.println("=== Untracked Files ===");
         List<String> list = new ArrayList<>();
         for (File f : Repository.CWD.listFiles()) {
             if (f.isDirectory()) { //跳过 .gitlet 目录
                 continue;
             }
-            if (!map.containsKey(f.getName())) {
+            if (!map.containsKey(f.getName()) && !s.hasAddedFile(f.getName())) {
                 list.add(f.getName());
             }
         }
@@ -364,7 +373,7 @@ public class Commit implements Serializable {
 
 
     public void saveCommit() {
-        File f = Utils.join(Repository.OBJECTS, id);
+        File f = Utils.join(Repository.COMMITS, id);
         Utils.writeObject(f, this);
     }
 
@@ -372,7 +381,7 @@ public class Commit implements Serializable {
         System.out.println("===");
         System.out.println("commit " + id);
         if (secondParent != null) {
-            System.out.println("Merge " + parent.substring(0, 7) + " " + secondParent.substring(0, 7));
+            System.out.println("Merge: " + parent.substring(0, 7) + " " + secondParent.substring(0, 7));
         }
         String formatted = new Formatter().format("%ta %tb %td %tT %tY %tz",
                                           timeStamp, timeStamp, timeStamp, timeStamp, timeStamp, timeStamp)

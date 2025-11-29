@@ -30,6 +30,8 @@ public class Repository {
 
     /*存放所有blobs和commits的目录 */
     public static final File OBJECTS = join(GITLET_DIR, "objects");
+    public static final File COMMITS = join(OBJECTS, "commits");
+    public static final File BLOBS = join(OBJECTS, "blobs");
     /*存放所有分支的目录，每个以分支名命名的文件中存的是head commit的哈希值 */
     public static final File BRANCHES = join(GITLET_DIR, "branches");
     /*当前的commit head是哪个分支，存的是分支名 */
@@ -44,6 +46,8 @@ public class Repository {
         }
         GITLET_DIR.mkdir();
         OBJECTS.mkdir();
+        COMMITS.mkdir();
+        BLOBS.mkdir();
         BRANCHES.mkdir();
         try {
             HEAD.createNewFile();
@@ -59,7 +63,7 @@ public class Repository {
     }
     //初始化时创建initial commit
     private static void zeroCommit(Commit commit) {
-        File f = join(OBJECTS, commit.getID());
+        File f = join(COMMITS, commit.getID());
         try {
             f.createNewFile();
         } catch (IOException e) {
@@ -87,16 +91,17 @@ public class Repository {
     }
 
     public static boolean initialized() {
-        return GITLET_DIR.exists() && OBJECTS.exists() && BRANCHES.exists() && HEAD.exists() && STAGE.exists();
+        return GITLET_DIR.exists() && OBJECTS.exists() && COMMITS.exists() 
+        && BLOBS.exists() && BRANCHES.exists() && HEAD.exists() && STAGE.exists();
     }
 
     public static void add(String filename) { //用于完成gitlet add
         File f = join(Repository.CWD, filename);
-        if (!f.isFile()) {
-            Utils.exitWith(filename + " is not a file.");
-        }
         if (!f.exists()) {
             Utils.exitWith("File does not exist.");
+        }
+        if (!f.isFile()) {
+            Utils.exitWith(filename + " is not a file.");
         }
         Blob b = new Blob(f);
         Stage s = Stage.getStage();
@@ -104,6 +109,9 @@ public class Repository {
         //检查父commit是否有一模一样的文件
         if (c.hasBlob(filename, b.getID())) {
             s.removeFromAddition(filename);
+            if (s.removal.contains(filename)) {
+                s.removal.remove(filename);
+            }
             s.saveStage();
             System.exit(0);
         }
@@ -117,6 +125,9 @@ public class Repository {
     }
     
     public static void commit(String commitMessage) {
+        if(commitMessage.equals("")) {
+            Utils.exitWith("Please enter a commit message.");
+        }
         Stage s = Stage.getStage();
         if (s.addition.isEmpty() && s.removal.isEmpty()) {
             Utils.exitWith("No changes added to the commit.");
@@ -136,14 +147,15 @@ public class Repository {
         if (!s.hasAddedFile(filename) && !c.hasFile(filename)) {
             Utils.exitWith("No reason to remove the file.");
         }
-        if(f.exists()) {
+        if(f.exists() && c.hasFile(filename)) {
             f.delete(); //若该文件仍在工作区，删除该文件
         }
         if (s.hasAddedFile(filename)) {
             s.addition.remove(filename);
         }
         if (c.hasFile(filename)) {
-            s.removal.put(filename, b.getID());
+            //s.removal.put(filename, null);
+            s.removal.add(filename);
         }
         s.saveStage();
     }
@@ -175,21 +187,23 @@ public class Repository {
     }
 
     public static void global_log() {
-        HashSet<String> visited = new HashSet<>();
-        for (File f : Repository.BRANCHES.listFiles()) {
-            String id = Utils.readContentsAsString(f);
-            Commit c = Commit.getCommit(id);
-            traverseBranch(c, visited, (commit)->{ return true; }, Commit::printCommit);
+        for (File f : Repository.COMMITS.listFiles()) {
+            Commit c = Utils.readObject(f, Commit.class);
+            c.print();
         }
     }
 
     public static void find(String commitMessage) {
-        HashSet<String> visited = new HashSet<>();
-        for (File f : Repository.BRANCHES.listFiles()) {
-            String id = Utils.readContentsAsString(f);
-            Commit c = Commit.getCommit(id);
-            traverseBranch(c, visited, (commit)->{return commit.getMessage().equals(commitMessage);},
-                    (commit)->System.out.println(commit.getID()));
+        Boolean finded = false;
+        for (File f : Repository.COMMITS.listFiles()) {
+            Commit c = Utils.readObject(f, Commit.class);
+            if(c.getMessage().equals(commitMessage)) {
+                c.print();
+                finded = true;
+            }
+        }
+        if(!finded) {
+            System.out.println("Found no commit with that message.");
         }
     }
 
@@ -199,10 +213,8 @@ public class Repository {
         s.stageStatus();
         Commit c = Commit.getHeadCommit();
         c.ModificationsNotStaged(s);
-        c.untracked();
+        c.untracked(s);
     }
-
-
 
     public static void checkout(String[] args) {
         if (args.length == 2) {
@@ -265,7 +277,7 @@ public class Repository {
             Utils.exitWith("You have uncommitted changes.");
         }
         File givenBranch = Branch.getBranchFile(branchName);
-        if (givenBranch == null) {
+        if (!givenBranch.exists()) {
             Utils.exitWith("A branch with that name does not exist.");
         }
         File currentBranch = Branch.getCurrentBranchFile();

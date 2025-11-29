@@ -39,7 +39,7 @@ public class Branch {
 
         for (File f : Repository.BRANCHES.listFiles()) {
             String id = Utils.readContentsAsString(f);
-            File F = Utils.join(Repository.OBJECTS, id);
+            File F = Utils.join(Repository.COMMITS, id);
             Commit c = Utils.readObject(F, Commit.class);
             headQueue.add(c);
             visited.add(c.getID());

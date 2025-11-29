@@ -3,15 +3,18 @@ package gitlet;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 public class Stage implements Serializable {
     HashMap<String, String> addition; //相比于父commit，添加或修改了哪些内容，文件名做键值，id做值
-    HashMap<String, String> removal;  //相比于父commit，删除了哪些内容
+    //HashMap<String, String> removal;  //相比于父commit，删除了哪些内容
+    HashSet<String> removal;
     public Stage() {
         addition = new HashMap<>();
-        removal = new HashMap<>();
+        //removal = new HashMap<>();
+        removal = new HashSet<>();
     }
     public static Stage getStage() { //返回当前的暂存区
         Stage s;
@@ -34,8 +37,11 @@ public class Stage implements Serializable {
 
         System.out.println("=== Removed Files ===");
         List<String> listForRemoval = new ArrayList<>();
-        for (Map.Entry<String, String> entry : removal.entrySet()) {
-            listForRemoval.add(entry.getKey());
+        // for (Map.Entry<String, String> entry : removal.entrySet()) {
+        //     listForRemoval.add(entry.getKey());
+        // }
+        for(String s : removal) {
+            listForRemoval.add(s);
         }
         Utils.printList(listForRemoval);
         System.out.print("\n");
@@ -60,7 +66,7 @@ public class Stage implements Serializable {
 
     public void addItem(String filename, String id) { //有一个blob要加进暂存区
         addition.put(filename, id);
-        if (removal.containsKey(filename)) {
+        if (removal.contains(filename)) {
             removal.remove(filename);
         }
     }
