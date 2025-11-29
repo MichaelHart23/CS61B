@@ -211,10 +211,11 @@ public class Commit implements Serializable {
         } else {
             s2 = "";
         }
-        return "<<<<<<< HEAD\n" + s1 + "=======\n" + s2 + ">>>>>>>";
+        return "<<<<<<< HEAD\n" + s1 + "=======\n" + s2 + ">>>>>>>\n";
     }
 
-    public static Commit merge(Commit cur, Commit given, Commit sp) {
+    public static Commit merge(Commit cur, 
+                                Commit given, Commit sp) {
         Stage s = Stage.getStage(); //应为空
         HashMap<String, String> conflictFile = new HashMap<>();
         HashSet<String> visited = new HashSet<>(); //已经处理过的文件名的集合
@@ -273,8 +274,8 @@ public class Commit implements Serializable {
                     //cur删了，given修改了 情况8
                     //若此时工作区中仍有该文件，那就要报错并退出了
                     if (wd.contains(filename)) {
-                        Utils.exitWith("There is an untracked file in the way; delete " + 
-                            "it, or add and commit it first.");
+                        Utils.exitWith("There is an untracked file in the way; delete " 
+                            + "it, or add and commit it first.");
                     }
                     String content = mergeContent(filename, cur, given, false, true);
                     conflictFile.put(filename, content);
@@ -412,7 +413,7 @@ public class Commit implements Serializable {
         System.out.println("commit " + id);
         if (secondParent != null) {
             System.out.println("Merge: " + parent.substring(0, 7) 
-              + " " + secondParent.substring(0, 7));
+                + " " + secondParent.substring(0, 7));
         }
         String formatted = new Formatter().format("%ta %tb %td %tT %tY %tz",
                                             timeStamp, timeStamp, timeStamp, 
