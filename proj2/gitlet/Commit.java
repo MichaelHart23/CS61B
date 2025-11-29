@@ -121,7 +121,7 @@ public class Commit implements Serializable {
                     }
                     newDeque.add(getCommit(c.getParentID()));
                     if (c.secondParent != null) {
-                        if(set.contains(c.secondParent)) {
+                        if (set.contains(c.secondParent)) {
                             return getCommit(c.secondParent);
                         }
                         newDeque.add(getCommit(c.secondParent));
@@ -195,7 +195,8 @@ public class Commit implements Serializable {
         }
     }
 
-    private static String mergeContent(String filename, Commit cur, Commit given, Boolean curHave, Boolean givenHave) {
+    private static String mergeContent(String filename, Commit cur, 
+                                        Commit given, Boolean curHave, Boolean givenHave) {
         String s1;
         String s2;
         if (curHave) {
@@ -220,7 +221,7 @@ public class Commit implements Serializable {
         HashSet<String> wd = new HashSet<>(); //工作区文件集合
         Boolean conflict = false;
         for (File f : Repository.CWD.listFiles()) {
-            if(f.isDirectory()) {
+            if (f.isDirectory()) {
                 continue;
             }
             wd.add(f.getName());
@@ -228,7 +229,7 @@ public class Commit implements Serializable {
 
         for (Map.Entry<String, String> entry : sp.map.entrySet()) { //在sp中存在文件
             String filename = entry.getKey();
-            if(cur.containFile(filename) && given.containFile(filename)) { //文件在两者皆存在
+            if (cur.containFile(filename) && given.containFile(filename)) { //文件在两者皆存在
                 if (entry.getValue().equals(cur.map.get(filename))
                         && !entry.getValue().equals(given.map.get(filename))) {
                     //given修改，cur未修改 情况1
@@ -272,7 +273,8 @@ public class Commit implements Serializable {
                     //cur删了，given修改了 情况8
                     //若此时工作区中仍有该文件，那就要报错并退出了
                     if (wd.contains(filename)) {
-                        Utils.exitWith("There is an untracked file in the way; delete it, or add and commit it first.");
+                        Utils.exitWith("There is an untracked file in the way; delete " + 
+                            "it, or add and commit it first.");
                     }
                     String content = mergeContent(filename, cur, given, false, true);
                     conflictFile.put(filename, content);
@@ -336,7 +338,7 @@ public class Commit implements Serializable {
         return c;
     }
 
-    public void ModifiedNotStaged(Stage s) {
+    public void modifiedNotStaged(Stage s) {
         System.out.println("=== Modifications Not Staged For Commit ===");
         Commit presentFiles = new Commit();
         List<String> list = new ArrayList<>();
@@ -413,9 +415,9 @@ public class Commit implements Serializable {
               + " " + secondParent.substring(0, 7));
         }
         String formatted = new Formatter().format("%ta %tb %td %tT %tY %tz",
-                                          timeStamp, timeStamp, timeStamp, 
-                                          timeStamp, timeStamp, timeStamp)
-                                          .toString();
+                                            timeStamp, timeStamp, timeStamp, 
+                                            timeStamp, timeStamp, timeStamp)
+                                            .toString();
         System.out.println("Date: " + formatted);
         System.out.println(message);
         System.out.print("\n");

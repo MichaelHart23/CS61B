@@ -214,7 +214,7 @@ public class Repository {
         Stage s = Stage.getStage();
         s.stageStatus();
         Commit c = Commit.getHeadCommit();
-        c.ModifiedNotStaged(s);
+        c.modifiedNotStaged(s);
         c.untracked(s);
     }
 
