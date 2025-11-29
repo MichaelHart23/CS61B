@@ -214,19 +214,12 @@ public class Commit implements Serializable {
         return "<<<<<<< HEAD\n" + s1 + "=======\n" + s2 + ">>>>>>>\n";
     }
 
-    public static Commit merge(Commit cur, 
-                                Commit given, Commit sp) {
-        Stage s = Stage.getStage(); //应为空
-        HashMap<String, String> conflictFile = new HashMap<>();
-        HashSet<String> visited = new HashSet<>(); //已经处理过的文件名的集合
-        HashSet<String> wd = new HashSet<>(); //工作区文件集合
+    private static Boolean checkSP(Commit cur, Commit given, Commit sp,
+                                    HashMap<String, String> conflictFile, 
+                                    HashSet<String> visited,
+                                    HashSet<String> wd,
+                                    Stage s) {
         Boolean conflict = false;
-        for (File f : Repository.CWD.listFiles()) {
-            if (f.isDirectory()) {
-                continue;
-            }
-            wd.add(f.getName());
-        }
 
         for (Map.Entry<String, String> entry : sp.map.entrySet()) { //在sp中存在文件
             String filename = entry.getKey();
@@ -256,7 +249,6 @@ public class Commit implements Serializable {
             } else if (cur.containFile(filename) || given.containFile(filename)) { //有且仅有一个把该文件删了
                 if (cur.containFile(filename) && entry.getValue().equals(cur.map.get(filename))) {
                     //given删了，cur未修改 情况6
-                    Blob b = Blob.getBlob(cur.map.get(filename));
                     s.removal.add(filename);
                 } else if (given.containFile(filename) 
                     && entry.getValue().equals(given.map.get(filename))) {
@@ -285,6 +277,23 @@ public class Commit implements Serializable {
 
             visited.add(filename);
         }
+        return conflict;
+    }
+
+    public static Commit merge(Commit cur, Commit given, Commit sp) {
+        Stage s = Stage.getStage(); //应为空
+        HashMap<String, String> conflictFile = new HashMap<>();
+        HashSet<String> visited = new HashSet<>(); //已经处理过的文件名的集合
+        HashSet<String> wd = new HashSet<>(); //工作区文件集合
+        Boolean conflict = false;
+        for (File f : Repository.CWD.listFiles()) {
+            if (f.isDirectory()) {
+                continue;
+            }
+            wd.add(f.getName());
+        }
+
+        conflict = checkSP(cur, given, sp, conflictFile, visited, wd, s);
 
         for (Map.Entry<String, String> entry : given.map.entrySet()) {
             String filename = entry.getKey();
