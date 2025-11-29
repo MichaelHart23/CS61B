@@ -1,9 +1,11 @@
 package gitlet;
 
 import java.io.File;
-import java.io.Serializable; // TODO: You'll likely use this in this class
+import java.io.Serializable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Deque;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,7 +48,7 @@ public class Commit implements Serializable {
         // for (Map.Entry<String, String> entry : s.removal.entrySet()) {
         //     map.remove(entry.getKey());
         // }
-        for(String str : s.removal) {
+        for (String str : s.removal) {
             map.remove(str);
         }
         parent = pa.id;
@@ -99,25 +101,51 @@ public class Commit implements Serializable {
         return commit;
     }
 
+    /*
+     * 对于split point的计算，还要考虑second parent的那条路径
+     */
     public static Commit getSplitPoint(Commit a, Commit b) {
         HashSet<String> set = new HashSet<>();
+        Deque<Commit> deque = new ArrayDeque<>();
         set.add(a.id);
         set.add(b.id);
+        deque.add(a);
+        deque.add(b);
         while (true) {
-            if (a.parent != null) {
-                if (set.contains(a.parent)) {
-                    return getCommit(a.parent);
+            Deque<Commit> newDeque = new ArrayDeque<>();
+            while (!deque.isEmpty()) {
+                Commit c = deque.poll();
+                if (c.parent != null) {
+                    if (set.contains(c.getParentID())) {
+                        return getCommit(c.getParentID());
+                    }
+                    newDeque.add(getCommit(c.getParentID()));
+                    if (c.secondParent != null) {
+                        if(set.contains(c.secondParent)) {
+                            return getCommit(c.secondParent);
+                        }
+                        newDeque.add(getCommit(c.secondParent));
+                        set.add(c.secondParent);
+                    }
+                    set.add(c.parent);
                 }
-                a = getCommit(a.parent);
-                set.add(a.id);
             }
-            if (b.parent != null) {
-                if (set.contains(b.parent)) {
-                    return Commit.getCommit(b.parent);
-                }
-                b = getCommit(b.parent);
-                set.add(b.id);
-            }
+            deque = newDeque;
+
+            // if (a.parent != null) {
+            //     if (set.contains(a.parent)) {
+            //         return getCommit(a.parent);
+            //     }
+            //     a = getCommit(a.parent);
+            //     set.add(a.id);
+            // }
+            // if (b.parent != null) {
+            //     if (set.contains(b.parent)) {
+            //         return Commit.getCommit(b.parent);
+            //     }
+            //     b = getCommit(b.parent);
+            //     set.add(b.id);
+            // }
         }
     }
 
@@ -147,7 +175,8 @@ public class Commit implements Serializable {
             String filename = f.getName();
             if (!current.containFile(filename) && target.containFile(filename)) {
                 Utils.exitWith(
-                    "There is an untracked file in the way; delete it, or add and commit it first.");
+                    "There is an untracked file in the way; delete it, " 
+                    + "or add and commit it first.");
             } else if (current.containFile(filename) && !target.containFile(filename)) {
                 toBeDeleted.add(f); //不能在这里删除，要等到全部检查完之后再删除
             }
@@ -181,7 +210,7 @@ public class Commit implements Serializable {
         } else {
             s2 = "";
         }
-        return "<<<<<<< HEAD\n" + s1 + "\n" + "=======\n" + s2 + "\n" + ">>>>>>>";
+        return "<<<<<<< HEAD\n" + s1 + "=======\n" + s2 + ">>>>>>>";
     }
 
     public static Commit merge(Commit cur, Commit given, Commit sp) {
@@ -227,16 +256,19 @@ public class Commit implements Serializable {
                     //given删了，cur未修改 情况6
                     Blob b = Blob.getBlob(cur.map.get(filename));
                     s.removal.add(filename);
-                } else if (given.containFile(filename) && entry.getValue().equals(given.map.get(filename))) {
+                } else if (given.containFile(filename) 
+                    && entry.getValue().equals(given.map.get(filename))) {
                     //cur删了，given未修改 情况7
                     //若此时工作区中仍有该文件，该不该删呢？感觉这种情况不必处理, 也不用报错
                     continue;
-                } else if (cur.containFile(filename) && !entry.getValue().equals(cur.map.get(filename))) {
+                } else if (cur.containFile(filename) 
+                    && !entry.getValue().equals(cur.map.get(filename))) {
                     //given删了，cur修改了 情况8
                     String content = mergeContent(filename, cur, given, true, false);
                     conflictFile.put(filename, content);
                     conflict = true;
-                } else if (given.containFile(filename) && !entry.getValue().equals(given.map.get(filename))) {
+                } else if (given.containFile(filename) 
+                    && !entry.getValue().equals(given.map.get(filename))) {
                     //cur删了，given修改了 情况8
                     //若此时工作区中仍有该文件，那就要报错并退出了
                     if (wd.contains(filename)) {
@@ -260,10 +292,12 @@ public class Commit implements Serializable {
                 //文件仅存在于given 情况5
                 //若此时工作区中有该文件，那就要报错了
                 if (wd.contains(filename)) {
-                    Utils.exitWith("There is an untracked file in the way; delete it, or add and commit it first.");
+                    Utils.exitWith(
+                        "There is an untracked file in the way; delete it, " 
+                        + "or add and commit it first.");
                 }
                 Blob b = Blob.getBlob(given.map.get(filename));
-                s.addItem(filename,b.getID());
+                s.addItem(filename, b.getID());
             }
             //visited.add(filename);
         }
@@ -286,13 +320,7 @@ public class Commit implements Serializable {
             Blob b = Blob.getBlob(entry.getValue());
             Utils.writeContents(f, b.content);
         }
-        // for (Map.Entry<String, String> entry : s.removal.entrySet()) {
-        //     File f = Utils.join(Repository.CWD, entry.getKey());
-        //     if (f.exists()) {
-        //         f.delete();
-        //     }
-        // }
-        for(String str : s.removal) {
+        for (String str : s.removal) {
             File f = Utils.join(Repository.CWD, str);
             if (f.exists()) {
                 f.delete();
@@ -308,7 +336,7 @@ public class Commit implements Serializable {
         return c;
     }
 
-    public void ModificationsNotStaged(Stage s) {
+    public void ModifiedNotStaged(Stage s) {
         System.out.println("=== Modifications Not Staged For Commit ===");
         Commit presentFiles = new Commit();
         List<String> list = new ArrayList<>();
@@ -326,7 +354,8 @@ public class Commit implements Serializable {
                 if (!s.removal.contains(filename)) { //这个文件不是通过rm命令删除的
                     list.add(filename + "(deleted)");
                 }
-            } else if (!entry.getValue().equals(presentFiles.map.get(filename)) && !s.addition.containsKey(filename)) {
+            } else if (!entry.getValue().equals(presentFiles.map.get(filename)) 
+                && !s.addition.containsKey(filename)) {
                 //内容相比current commit改变了却没有被add
                 list.add(filename + "(modified)");
             } else if (s.addition.containsKey(filename)
@@ -356,7 +385,7 @@ public class Commit implements Serializable {
 
     public void replaceFile(File f) { //将工作区的文件f换为本commit中对应的文件
         String filename = f.getName();
-        if( !map.containsKey(filename)) {
+        if (!map.containsKey(filename)) {
             Utils.exitWith("File does not exist in that commit.");
         }
         Blob b = Blob.getBlob(map.get(filename));
@@ -371,7 +400,6 @@ public class Commit implements Serializable {
         return map.containsKey(filename);
     }
 
-
     public void saveCommit() {
         File f = Utils.join(Repository.COMMITS, id);
         Utils.writeObject(f, this);
@@ -381,10 +409,12 @@ public class Commit implements Serializable {
         System.out.println("===");
         System.out.println("commit " + id);
         if (secondParent != null) {
-            System.out.println("Merge: " + parent.substring(0, 7) + " " + secondParent.substring(0, 7));
+            System.out.println("Merge: " + parent.substring(0, 7) 
+              + " " + secondParent.substring(0, 7));
         }
         String formatted = new Formatter().format("%ta %tb %td %tT %tY %tz",
-                                          timeStamp, timeStamp, timeStamp, timeStamp, timeStamp, timeStamp)
+                                          timeStamp, timeStamp, timeStamp, 
+                                          timeStamp, timeStamp, timeStamp)
                                           .toString();
         System.out.println("Date: " + formatted);
         System.out.println(message);
@@ -396,7 +426,9 @@ public class Commit implements Serializable {
     }
 
     public boolean equals(Commit other) {
-        return message.equals(other.message) && map.equals(other.map) && parent.equals(other.parent);
+        return message.equals(other.message) 
+            && map.equals(other.map) 
+            && parent.equals(other.parent);
     }
 
     public boolean isInitial() {
@@ -428,3 +460,4 @@ public class Commit implements Serializable {
     }
 
 }
+

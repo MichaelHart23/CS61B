@@ -11,8 +11,6 @@ import static gitlet.Utils.join;
 
 
 /** Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
  *
  *  @author Michael Hart
  */
@@ -42,7 +40,9 @@ public class Repository {
     //创建各个所需的文件，用于初始化
     private static void setupPersistence() {
         if (GITLET_DIR.exists()) {
-            Utils.exitWith("A Gitlet version-control system already exists in the current directory.");
+            Utils.exitWith(
+                "A Gitlet version-control system already " 
+                + "exists in the current directory.");
         }
         GITLET_DIR.mkdir();
         OBJECTS.mkdir();
@@ -92,7 +92,7 @@ public class Repository {
 
     public static boolean initialized() {
         return GITLET_DIR.exists() && OBJECTS.exists() && COMMITS.exists() 
-        && BLOBS.exists() && BRANCHES.exists() && HEAD.exists() && STAGE.exists();
+            && BLOBS.exists() && BRANCHES.exists() && HEAD.exists() && STAGE.exists();
     }
 
     public static void add(String filename) { //用于完成gitlet add
@@ -125,7 +125,7 @@ public class Repository {
     }
     
     public static void commit(String commitMessage) {
-        if(commitMessage.equals("")) {
+        if (commitMessage.equals("")) {
             Utils.exitWith("Please enter a commit message.");
         }
         Stage s = Stage.getStage();
@@ -143,11 +143,10 @@ public class Repository {
         Stage s = Stage.getStage();
         Commit c = Commit.getHeadCommit();
         File f = Utils.join(CWD, filename);
-        Blob b = new Blob(f);
         if (!s.hasAddedFile(filename) && !c.hasFile(filename)) {
             Utils.exitWith("No reason to remove the file.");
         }
-        if(f.exists() && c.hasFile(filename)) {
+        if (f.exists() && c.hasFile(filename)) {
             f.delete(); //若该文件仍在工作区，删除该文件
         }
         if (s.hasAddedFile(filename)) {
@@ -183,10 +182,13 @@ public class Repository {
 
     public static void log() {
         Commit c = Commit.getHeadCommit();
-        traverseBranch(c, new HashSet<>(), (commit)->{ return true; }, Commit::printCommit);
+        traverseBranch(c, new HashSet<>(), 
+            (commit) -> { 
+                return true; 
+            }, Commit::printCommit);
     }
 
-    public static void global_log() {
+    public static void globalLog() {
         for (File f : Repository.COMMITS.listFiles()) {
             Commit c = Utils.readObject(f, Commit.class);
             c.print();
@@ -197,12 +199,12 @@ public class Repository {
         Boolean finded = false;
         for (File f : Repository.COMMITS.listFiles()) {
             Commit c = Utils.readObject(f, Commit.class);
-            if(c.getMessage().equals(commitMessage)) {
-                c.print();
+            if (c.getMessage().equals(commitMessage)) {
+                System.out.println(c.getID());
                 finded = true;
             }
         }
-        if(!finded) {
+        if (!finded) {
             System.out.println("Found no commit with that message.");
         }
     }
@@ -212,7 +214,7 @@ public class Repository {
         Stage s = Stage.getStage();
         s.stageStatus();
         Commit c = Commit.getHeadCommit();
-        c.ModificationsNotStaged(s);
+        c.ModifiedNotStaged(s);
         c.untracked(s);
     }
 
@@ -232,7 +234,7 @@ public class Repository {
         } else {
             String id = args[1];
             c = Commit.getCommit(id);
-            if(c == null) {
+            if (c == null) {
                 Utils.exitWith("No commit with that id exists.");
             }
         }
@@ -300,9 +302,5 @@ public class Repository {
         c.updateID();
         c.saveCommit();
         Commit.updateHeadCommit(c.getID());
-
-        //remove branch
-        File f = Utils.join(Repository.BRANCHES, branchName);
-        f.delete();
     }
 }

@@ -40,7 +40,7 @@ public class Stage implements Serializable {
         // for (Map.Entry<String, String> entry : removal.entrySet()) {
         //     listForRemoval.add(entry.getKey());
         // }
-        for(String s : removal) {
+        for (String s : removal) {
             listForRemoval.add(s);
         }
         Utils.printList(listForRemoval);
@@ -85,3 +85,4 @@ public class Stage implements Serializable {
         return addition.isEmpty() && removal.isEmpty();
     }
 }
+
