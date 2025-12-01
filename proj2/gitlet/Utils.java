@@ -238,7 +238,7 @@ class Utils {
     }
 
 
-     public static void exitWith(String message) {
+    public static void exitWith(String message) {
         if (message != null && !message.equals("")) {
             System.out.println(message);
         }
@@ -247,7 +247,7 @@ class Utils {
 
     public static void printList(List<String> list) {
         list.sort(String::compareTo);
-        for(String s : list) {
+        for (String s : list) {
             System.out.println(s);
         }
     }

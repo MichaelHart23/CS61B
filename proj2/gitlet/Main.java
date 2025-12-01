@@ -12,7 +12,7 @@ public class Main {
     public static void main(String[] args) {
         if (args.length == 0) {
             System.out.println("Please enter a command.");
-            System.exit(-1);
+            System.exit(0);
         }
         String firstArg = args[0];
         switch(firstArg) {
@@ -47,7 +47,7 @@ public class Main {
             case "global-log":
                 validateNumArgs(args, 1);
                 validateDir();
-                Repository.global_log();
+                Repository.globalLog();
                 break;
             case "find":
                 validateNumArgs(args, 2);
@@ -102,14 +102,14 @@ public class Main {
      public static void validateNumArgs(String[] args, int n) {
         if (args.length != n) {
             System.out.println("Incorrect operands.");
-            System.exit(-1);
+            System.exit(0);
         }
     }
 
     public static void validateDir() {
-        if(!Repository.initialized()) {
+        if (!Repository.initialized()) {
             System.out.println("Not in an initialized Gitlet directory.");
-            System.exit(-1);
+            System.exit(0);
         }
     }
 }

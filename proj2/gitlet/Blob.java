@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
-import static gitlet.Utils.join;
 
 public class Blob implements Serializable {
     String content;
@@ -15,7 +14,7 @@ public class Blob implements Serializable {
     }
 
     public void saveBolb() {
-        File f = Utils.join(Repository.OBJECTS, id);
+        File f = Utils.join(Repository.BLOBS, id);
         try {
             f.createNewFile();
         } catch (IOException e) {
@@ -24,7 +23,10 @@ public class Blob implements Serializable {
         Utils.writeObject(f, this);
     }
 
-    public Blob() {}
+    public Blob() {
+        content = null;
+        id = null;
+    }
 
     public Blob(File file) { //通过文本文件构造Blob
         content = Utils.readContentsAsString(file);
@@ -44,7 +46,7 @@ public class Blob implements Serializable {
     }
 
     public static Blob getBlob(String bid) {
-        File f = Utils.join(Repository.OBJECTS, bid);
+        File f = Utils.join(Repository.BLOBS, bid);
         Blob b = Utils.readObject(f, Blob.class);
         return b;
     }
