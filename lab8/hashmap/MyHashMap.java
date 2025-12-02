@@ -10,7 +10,7 @@ import java.util.*;
  *  @author YOUR NAME HERE
  */
 public class MyHashMap<K, V> implements Map61B<K, V> {
-    
+
     /**
      * Protected helper class to store key/value pairs
      * The protected qualifier allows subclass access
@@ -30,7 +30,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     private Collection<Node>[] buckets;
     private int capacity;
     private int size;
-    double loadFactor;
+    private double loadFactor;
     private HashSet<K> keys;
 
     /** Constructors */
