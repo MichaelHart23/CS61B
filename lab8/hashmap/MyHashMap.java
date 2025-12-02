@@ -1,6 +1,8 @@
 package hashmap;
 
-import java.util.Collection;
+import afu.org.checkerframework.checker.oigj.qual.O;
+
+import java.util.*;
 
 /**
  *  A hash table-backed Map implementation. Provides amortized constant time
@@ -10,6 +12,8 @@ import java.util.Collection;
  *  @author YOUR NAME HERE
  */
 public class MyHashMap<K, V> implements Map61B<K, V> {
+
+
 
     /**
      * Protected helper class to store key/value pairs
@@ -25,14 +29,28 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         }
     }
 
+
     /* Instance Variables */
     private Collection<Node>[] buckets;
-    // You should probably define some more!
+    private int capacity;
+    private int size;
+    double loadFactor;
+    private HashSet<K> keys;
 
     /** Constructors */
-    public MyHashMap() { }
+    public MyHashMap() {
+        capacity = 16;
+        buckets = createTable(capacity);
+        loadFactor = 0.75;
+        keys = new HashSet<>();
+    }
 
-    public MyHashMap(int initialSize) { }
+    public MyHashMap(int initialSize) {
+        capacity = initialSize;
+        buckets = createTable(capacity);
+        loadFactor = 0.75;
+        keys = new HashSet<>();
+    }
 
     /**
      * MyHashMap constructor that creates a backing array of initialSize.
@@ -41,13 +59,18 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * @param initialSize initial size of backing array
      * @param maxLoad maximum load factor
      */
-    public MyHashMap(int initialSize, double maxLoad) { }
+    public MyHashMap(int initialSize, double maxLoad) {
+        capacity = initialSize;
+        buckets = createTable(capacity);
+        loadFactor = maxLoad;
+        keys = new HashSet<>();
+    }
 
     /**
      * Returns a new node to be placed in a hash table bucket
      */
     private Node createNode(K key, V value) {
-        return null;
+        return  new Node(key, value);
     }
 
     /**
@@ -69,7 +92,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * OWN BUCKET DATA STRUCTURES WITH THE NEW OPERATOR!
      */
     protected Collection<Node> createBucket() {
-        return null;
+        return new LinkedList<>();
     }
 
     /**
@@ -82,10 +105,167 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * @param tableSize the size of the table to create
      */
     private Collection<Node>[] createTable(int tableSize) {
-        return null;
+        Collection<Node>[] c = new Collection[tableSize];
+        for(int i = 0; i < tableSize; i++) {
+            c[i] = createBucket();
+        }
+        return c;
     }
 
     // TODO: Implement the methods of the Map61B Interface below
     // Your code won't compile until you do so!
+
+
+    @Override
+    public void clear() {
+        buckets = createTable(capacity);
+        keys = new HashSet<>();
+        size = 0;
+    }
+
+    @Override
+    public boolean containsKey(K key) {
+        return keys.contains(key);
+    }
+
+    private int getIndex(K key, int len) {
+        int rawCode = key.hashCode();
+        int hashCode = rawCode >= 0 ? rawCode : -rawCode;
+
+        return hashCode % len;
+    }
+
+    @Override
+    public V get(K key) {
+        if(!keys.contains(key)) {
+            return null;
+        }
+
+        int index = getIndex(key, capacity);
+
+        Collection<Node> bucket = buckets[index];
+        for(Node n : bucket) {
+            if(n.key.equals(key)) {
+                return n.value;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public int size() {
+        return size;
+    }
+
+    private void resize() {
+        int newCapacity = capacity * 2;
+        Collection<Node>[] newBuckets = createTable(newCapacity);
+        HashSet<K> visited = new HashSet<>();
+        for(K key : keys) {
+            if(visited.contains(key)) {
+                continue;
+            }
+            int index = getIndex(key, capacity);
+            for(Node n : buckets[index]) {
+                newBuckets[getIndex(n.key, newCapacity)].add(n);
+            }
+        }
+        capacity = newCapacity;
+        buckets = newBuckets;
+    }
+
+    @Override
+    public void put(K key, V value) {
+        if((double)size/capacity >= loadFactor) {
+            resize();
+        }
+        int index = getIndex(key, capacity);
+        Collection<Node> bucket = buckets[index];
+        if(keys.contains(key)) {
+            for(Node n : bucket) {
+                if(n.key.equals(key)) {
+                    n.value = value;
+                    return;
+                }
+            }
+        } else {
+            bucket.add(createNode(key, value));
+            keys.add(key);
+            size++;
+        }
+    }
+
+    @Override
+    public Set<K> keySet() {
+        return keys;
+    }
+
+    @Override
+    public V remove(K key) {
+        if(!keys.contains(key)) {
+            return null;
+        }
+        V res = null;
+        int index = getIndex(key, capacity);
+        for(Node n : buckets[index]) {
+            if(n.key.equals(key)) {
+                res = n.value;
+                buckets[index].remove(n);
+                size--;
+                keys.remove(key);
+            }
+        }
+        return res;
+    }
+
+    @Override
+    public V remove(K key, V value) {
+        if(!keys.contains(key)) {
+            return null;
+        }
+        V res = null;
+        int index = getIndex(key, capacity);
+        for(Node n : buckets[index]) {
+            if(n.key.equals(key) ) {
+                if(!n.value.equals(value)) {
+                    return n.value;
+                }
+                res = n.value;
+                buckets[index].remove(n);
+                size--;
+                keys.remove(key);
+            }
+        }
+        return res;
+    }
+
+
+    @Override
+    public Iterator<K> iterator() {
+        return new MyHashMapIterator();
+    }
+
+    private class MyHashMapIterator implements Iterator<K> {
+        private Deque<K> unvisited;
+
+        MyHashMapIterator() {
+            unvisited = new ArrayDeque<>();
+            for(K key : keys) {
+                unvisited.add(key);
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !unvisited.isEmpty();
+        }
+
+        @Override
+        public K next() {
+            return unvisited.poll();
+        }
+    }
+
+
 
 }
