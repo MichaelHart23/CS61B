@@ -2,6 +2,7 @@ package byow.Core;
 
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
+import byow.TileEngine.Tileset;
 
 public class Engine {
     TERenderer ter = new TERenderer();
@@ -45,8 +46,35 @@ public class Engine {
         //
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
-
-        TETile[][] finalWorldFrame = null;
+        long seed = parseInput(input);
+        TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
+        for (int x = 0; x < WIDTH; x += 1) {
+            for (int y = 0; y < HEIGHT; y += 1) {
+                finalWorldFrame[x][y] = Tileset.NOTHING;
+            }
+        }
         return finalWorldFrame;
+    }
+
+    private Long parseInput(String input) {
+        input = input.toLowerCase();
+        if(input == null || input.charAt(0) != 'n') {
+            return null;
+        }
+        if(input.length() < 2) {
+            return null;
+        }
+        int numLen = 0;
+        char c = input.charAt(1);
+        while(c != 's') {
+            numLen++;
+        }
+        Long res = null;
+        try {
+            res = Long.valueOf(input.substring(1, numLen));
+        } catch (NumberFormatException e) {
+            System.out.println("The number is out of range for a long");
+        }
+        return res;
     }
 }
